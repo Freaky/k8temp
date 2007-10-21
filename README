@@ -1,0 +1,44 @@
+k8temp - AMD K8 thermal diode reader
+====================================
+
+Synopsis
+--------
+k8temp displays readings from the on-die thermal diodes found in most
+AMD K8 processors, including AMD64's and Opterons.
+
+Please see the warning below.
+
+
+Example
+-------
+-% sudo k8temp
+CPU 0 Core 0 Sensor 0: 37c
+CPU 0 Core 0 Sensor 1: 36c
+CPU 0 Core 1 Sensor 0: 36c
+CPU 0 Core 1 Sensor 1: 36c
+CPU 1 Core 0 Sensor 0: 32c
+CPU 1 Core 0 Sensor 1: 32c
+CPU 1 Core 1 Sensor 0: 32c
+CPU 1 Core 1 Sensor 1: 32c
+
+Yes, AMD64's allegedly have two sensors per core.
+
+
+Installation
+------------
+make
+
+Put k8temp and k8temp.8 wherever.
+
+
+=======
+WARNING
+=======
+Since this pokes at /dev/pci, it has the potential to make your system crash,
+reboot, catch fire, and frame you for conspiracy to murder heads of state.
+
+Out of 5 test machines, I've only managed to kill one of them, and the code
+responsible for that has been disabled (try building with -DCOUNT_CORES if you
+feel lucky and have single core CPUs).  Still, I don't recommend trying it on
+production systems you can't afford to die.
+

@@ -1,0 +1,51 @@
+.\" Copyright (c) 2007 Thomas Hurst <tom@hur.st>
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a copy
+.\" of this software and associated documentation files (the "Software"), to deal
+.\" in the Software without restriction, including without limitation the rights
+.\" to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.\" copies of the Software, and to permit persons to whom the Software is
+.\" furnished to do so, subject to the following conditions:
+.\" 
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\" 
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.\" AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.\" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.\" OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+.\" THE SOFTWARE.
+.\"
+.Dd October 21, 2007
+.Dt K8TEMP 8
+.Os
+.Sh NAME
+.Nm k8temp
+.Nd "display on-die temperature readings from AMD K8 processors"
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+The
+.Nm
+utility displays temperature readings from AMD K8 processors using
+their on-die thermal diode(s).
+.Pp
+.Nm
+requires read-write access to /dev/pci, and thus must be run as root.
+.Sh BUGS
+.Nm
+may cause unsupported systems to reboot, crash or explode.
+.Pp
+Single core systems may be shown as having two cores.
+.Pp
+No attempt is made to apply correction offsets to readings.
+.Pp
+Readings below 1c will be ignored.
+.Sh HISTORY
+The
+.Nm
+utility was first written in October 2007.
+.Sh AUTHOR
+Thomas Hurst <tom@hur.st>
