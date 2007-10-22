@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-#define K8TEMP_VERSION "0.1.0"
+#define K8TEMP_VERSION "0.1.1"
 
 /*
  * Usage: gcc -o k8temp k8temp.c && sudo ./k8temp
@@ -81,9 +81,9 @@
  * http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
  */
 #define CTRL_REG    0xe4
-#define TEMP_REG    0xe6
 #define SEL_CORE    (1 << 2) /* ThermSenseCoreSel */
 #define SEL_SENSOR  (1 << 6) /* ThermSenseSel */
+#define CURTMP(val) (((val) >> 16) & 0xff)
 
 /*
  * Section 4.6.24, Northbridge Capabilities Register
@@ -134,6 +134,7 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 {
 	char reg;
 	struct pci_io ctrl;
+	int tcontrol,curtmp,tjoffset;
 	bzero(&ctrl, sizeof(ctrl));
 
 	ctrl.pi_sel = dev;
@@ -158,7 +159,7 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 		reg |= SEL_SENSOR;
 	else return(-1);
 
-	ctrl.pi_reg = reg;
+	ctrl.pi_data = reg;
 	if (ioctl(fd, PCIOCWRITE, &ctrl) == -1)
 	{
 		perror("ThermTrip register write failed");
@@ -174,7 +175,7 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 	if ((reg & (SEL_CORE|SEL_SENSOR)) != (ctrl.pi_reg & (SEL_CORE|SEL_SENSOR)))
 		return(0);
 
-	ctrl.pi_reg = TEMP_REG;
+	ctrl.pi_width = 4;
 	if (ioctl(fd, PCIOCREAD, &ctrl) == -1)
 	{
 		perror("ThermTrip register read failed");
@@ -183,8 +184,9 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 	/*
 	 * TODO: See about correcting with TjOffset
 	 */
-	return(ctrl.pi_data - 49);
+	return(CURTMP(ctrl.pi_data) - 49);
 }
+
 
 int main(int argc, char *argv[])
 {
