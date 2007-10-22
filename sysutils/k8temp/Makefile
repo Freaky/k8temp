@@ -1,6 +1,6 @@
 # New ports collection makefile for:    k8temp
 # Date created:        21 October 2007
-# Whom:                Thomas Hurst
+# Whom:                Thomas Hurst <tom@hur.st>
 #
 # $FreeBSD$
 #
