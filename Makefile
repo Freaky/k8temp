@@ -4,10 +4,6 @@ RM?= rm
 CFLAGS?= -O -Wall -pedantic -ansi
 PREFIX?=/usr/local
 
-.if defined(COUNT_CORES)
-CFLAGS+= -DCOUNT_CORES
-.endif
-
 all: k8temp
 
 k8temp: k8temp.c
