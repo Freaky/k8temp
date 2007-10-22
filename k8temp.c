@@ -30,29 +30,16 @@
  * Usage: gcc -o k8temp k8temp.c && sudo ./k8temp
  *
  * Tested on FreeBSD 6-STABLE/amd64 on a dual dual core Opteron 275:
- *
- * CPU 0 Core 0 Sensor 0: 36c
- * CPU 0 Core 0 Sensor 1: 36c
- * CPU 0 Core 1 Sensor 0: 34c
- * CPU 0 Core 1 Sensor 1: 35c
- * CPU 1 Core 0 Sensor 0: 33c
- * CPU 1 Core 0 Sensor 1: 33c
- * CPU 1 Core 1 Sensor 0: 36c
- * CPU 1 Core 1 Sensor 1: 36c
+ * CPU 0 Core 0 Sensor 0: 50c
+ * CPU 1 Core 0 Sensor 0: 48c
  *
  * 6.1-RELEASE/amd64 on a dual core Opteron 175:
- *
- * CPU 0 Core 0 Sensor 0: 32c
- * CPU 0 Core 0 Sensor 1: 36c
+ * CPU 0 Core 0 Sensor 0: 36c
  * CPU 0 Core 1 Sensor 0: 32c
- * CPU 0 Core 1 Sensor 1: 32c
  *
  * 6.2-RELEASE/amd64 on a dual single core Opteron 248:
- * CPU 0 Core 0 Sensor 0: 33c
- * CPU 0 Core 0 Sensor 1: 33c
- * CPU 1 Core 0 Sensor 0: 38c
- * CPU 1 Core 0 Sensor 1: 38c
- *  (Note, without get_cores(), there may be a bogus "Core 1")
+ * CPU 0 Core 1 Sensor 0: 32c
+ * CPU 1 Core 1 Sensor 0: 38c
  * 
  * 6.2-RELEASE/amd64 on a dual dual core Opteron 2216:
  * CPU 0 Core 0 Sensor 0: 46c
@@ -84,51 +71,6 @@
 #define SEL_CORE    (1 << 2) /* ThermSenseCoreSel */
 #define SEL_SENSOR  (1 << 6) /* ThermSenseSel */
 #define CURTMP(val) (((val) >> 16) & 0xff)
-
-/*
- * Section 4.6.24, Northbridge Capabilities Register
- */
-#define CAP_REG     0xe8
-#define CORE_CAP    ((1 << 12)|(1 << 13)) /* CmpCap, 2 bytes */
-#define SINGLE_CORE 0
-#define DUAL_CORE   (1 << 12)
-
-int get_cores(int fd, struct pcisel dev)
-{
-#ifndef COUNT_CORES
-	return(2);
-#else
-#warning This has been known to crash some Socket F systems.
-	/*
-	 * XXX: This makes at least one Socket F system reboot.
-	 * I'm pretty sure the data sheet didn't mention that...
-	 *
-	 * Options: cpuid? Check sysctl for CPU count and guess based
-	 * on device count?
-	 */
-	struct pci_io ctrl;
-	bzero(&ctrl, sizeof(ctrl));
-
-	
-	ctrl.pi_sel = dev;
-	ctrl.pi_reg = CAP_REG;
-	ctrl.pi_width = 4;
-	if (ioctl(fd, PCIOCREAD, &ctrl) == -1)
-	{
-		perror("Northbridge capabilities register read failed");
-		return(-1);
-	}
-
-	switch (ctrl.pi_data & CORE_CAP)
-	{
-		case SINGLE_CORE: return(1);
-		case DUAL_CORE: return(2);
-		default:
-			warnx("Unsupported core count register value");
-			return(-1); /* Reserved, assume unsupported */
-	}
-#endif
-}
 
 int get_temp(int fd, struct pcisel dev, int core, int sensor)
 {
@@ -172,7 +114,7 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 		perror("ThermTrip register read failed");
 		return(-1);
 	}
-	if ((reg & (SEL_CORE|SEL_SENSOR)) != (ctrl.pi_reg & (SEL_CORE|SEL_SENSOR)))
+	if ((reg & (SEL_CORE|SEL_SENSOR)) != (ctrl.pi_data & (SEL_CORE|SEL_SENSOR)))
 		return(0);
 
 	ctrl.pi_width = 4;
@@ -216,31 +158,29 @@ int main(int argc, char *argv[])
 	pc.matches = conf;
 
 	cpu = 0; /* XXX: Are the PCI devices going to come out in CPU-number order? */
-	do {
-		if (ioctl(fd, PCIOCGETCONF, &pc) == -1 || pc.status == PCI_GETCONF_ERROR)
-		{
-			perror("ioctl(PCIOCGETCONF)");
-			break;
-		}
+	if (ioctl(fd, PCIOCGETCONF, &pc) == -1 || pc.status == PCI_GETCONF_ERROR)
+	{
+		perror("ioctl(PCIOCGETCONF)");
+		close(fd);
+		exit(EXIT_FAILURE);
+	}
 
-		for (p = conf; p < &conf[pc.num_matches]; p++)
+	for (p = conf; p < &conf[pc.num_matches]; p++)
+	{
+		for (core = 0; core < 2; core++)
 		{
-			cores = get_cores(fd, p->pc_sel);
-			for (core = 0; core < cores; core++)
+			for (sensor = 0; sensor < 2; sensor++)
 			{
-				for (sensor = 0; sensor < 2; sensor++)
+				temp = get_temp(fd, p->pc_sel, core, sensor);
+				if (temp > 0)
 				{
-					temp = get_temp(fd, p->pc_sel, core, sensor);
-					if (temp > 0)
-					{
-						printf("CPU %d Core %d Sensor %d: %dc\n", cpu, core, sensor, temp);
-						exit_code = EXIT_SUCCESS;
-					}
+					printf("CPU %d Core %d Sensor %d: %dc\n", cpu, core, sensor, temp);
+					exit_code = EXIT_SUCCESS;
 				}
 			}
-			cpu++;
 		}
-	} while (pc.status == PCI_GETCONF_MORE_DEVS);
+		cpu++;
+	}
 
 	close(fd);
 	exit(exit_code);
