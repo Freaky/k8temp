@@ -60,6 +60,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <string.h>
 
 #define _PATH_DEVPCI "/dev/pci"
 #define PCI_VENDOR_ID_AMD              0x1022
@@ -71,7 +72,7 @@ int correct = 0;
 void usage(int exit_code)
 {
 	fprintf((exit_code == EXIT_SUCCESS ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n",
-			"usage: k8temp [-dn | -v | -h]",
+			"usage: k8temp [-dc | -v | -h]",
 			"  -v    Display version information",
 			"  -h    Display this help text",
 			"  -d    Dump debugging info",
@@ -99,6 +100,21 @@ void version(void)
 #define OFFSET_MAX 11
 #define TEMP_MIN -49
 #define TEMP_ERR -255
+
+void check_cpuid(void)
+{
+	unsigned int vendor[3];
+	unsigned int stepping,unused;
+	asm("cpuid": "=a" (unused), "=b" (vendor[0]), "=c" (vendor[2]), "=d" (vendor[1]) : "a" (0));
+
+	/* evil? */
+	if (0 != memcmp((char *)&vendor, "AuthenticAMD", 12))
+		errx(EXIT_FAILURE, "Only AMD CPU's are supported by k8temp");
+
+	asm("cpuid": "=a" (stepping), "=b" (unused), "=c" (unused), "=d" (unused) : "a" (1));
+	if (stepping == 0xf40 || stepping == 0xf50 || stepping == 0xf51)
+		errx(EXIT_FAILURE, "This CPU stepping does not support Thermtrip.");
+}
 
 int get_temp(int fd, struct pcisel dev, int core, int sensor)
 {
@@ -193,6 +209,8 @@ int main(int argc, char *argv[])
 		default:
 			usage(EXIT_FAILURE);
 		}
+
+	check_cpuid();
 
 	fd = open(_PATH_DEVPCI, O_RDWR, 0);
 
