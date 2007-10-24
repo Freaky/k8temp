@@ -1,14 +1,11 @@
 
-CC?= cc
-RM?= rm
-CFLAGS?= -O -Wall -pedantic -ansi
 PREFIX?=/usr/local
 
-all: k8temp
+WARNS=6
+CSTD=gnu99
 
-k8temp: k8temp.c
-	${CC} ${CFLAGS} k8temp.c -o k8temp
+BINDIR=${PREFIX}/sbin
+MAN=  k8temp.8
+PROG= k8temp
 
-clean:
-	${RM} -f k8temp
-
+.include "bsd.prog.mk"
