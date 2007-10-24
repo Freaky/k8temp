@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-#define K8TEMP_VERSION "0.1.1"
+#define K8TEMP_VERSION "0.2.0"
 
 /*
  * Usage: gcc -o k8temp k8temp.c && sudo ./k8temp
@@ -63,14 +63,32 @@
 #define PCI_VENDOR_ID_AMD              0x1022
 #define PCI_DEVICE_ID_AMD_K8_MISC_CTRL 0x1103
 
+int debug = 0;
+int correct = 1;
+
+void usage(void)
+{
+	fprintf(stderr, "%s\n%s\n%s\n%s\n",
+			"usage: k8temp [-dn | -v]",
+			"  -v    Display version information",
+			"  -d    Dump debugging info",
+			"  -n    Do not apply diode offset correction");
+	exit(EXIT_FAILURE);
+}
+
 /*
- * See section 2.6.23, Thermtrip Status Register:
+ * See section 4.6.23, Thermtrip Status Register:
  * http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
  */
-#define CTRL_REG    0xe4
+#define THERM_REG   0xe4
 #define SEL_CORE    (1 << 2) /* ThermSenseCoreSel */
 #define SEL_SENSOR  (1 << 6) /* ThermSenseSel */
-#define CURTMP(val) (((val) >> 16) & 0xff)
+#define CURTMP(val)     (((val) >> 16) & 0xff)
+#define TJOFFSET(val)   (((val) >> 24) & 0xf)
+#define DIODEOFFSET(val)   (((val) >> 8) & 0x3f)
+
+#define TEMP_MIN -49
+#define TEMP_ERR -255
 
 int get_temp(int fd, struct pcisel dev, int core, int sensor)
 {
@@ -80,12 +98,12 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 	bzero(&ctrl, sizeof(ctrl));
 
 	ctrl.pi_sel = dev;
-	ctrl.pi_reg = CTRL_REG;
+	ctrl.pi_reg = THERM_REG;
 	ctrl.pi_width = 1;
 	if (ioctl(fd, PCIOCREAD, &ctrl) == -1)
 	{
 		perror("ThermTrip register read failed");
-		return(-1);
+		return(TEMP_ERR);
 	}
 	reg = ctrl.pi_data;
 
@@ -105,28 +123,34 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 	if (ioctl(fd, PCIOCWRITE, &ctrl) == -1)
 	{
 		perror("ThermTrip register write failed");
-		return(-1);
+		return(TEMP_ERR);
 	}
-
-	/* verify the selection took */
-	if (ioctl(fd, PCIOCREAD, &ctrl) == -1)
-	{
-		perror("ThermTrip register read failed");
-		return(-1);
-	}
-	if ((reg & (SEL_CORE|SEL_SENSOR)) != (ctrl.pi_data & (SEL_CORE|SEL_SENSOR)))
-		return(0);
 
 	ctrl.pi_width = 4;
 	if (ioctl(fd, PCIOCREAD, &ctrl) == -1)
 	{
 		perror("ThermTrip register read failed");
-		return(-1);
+		return(TEMP_ERR);
 	}
-	/*
-	 * TODO: See about correcting with TjOffset
-	 */
-	return(CURTMP(ctrl.pi_data) - 49);
+
+	/* verify the selection took */
+	if ((reg & (SEL_CORE|SEL_SENSOR)) != (ctrl.pi_data & (SEL_CORE|SEL_SENSOR)))
+		return(TEMP_ERR);
+
+	if (debug)
+		fprintf(stderr, "Read: 0x%08x (CurTmp=0x%02x (%dc) TjOffset=0x%02x DiodeOffset=0x%02x (%dc))\n",
+		        ctrl.pi_data,
+		        CURTMP(ctrl.pi_data), CURTMP(ctrl.pi_data) - 49,
+		        TJOFFSET(ctrl.pi_data),
+		        DIODEOFFSET(ctrl.pi_data), DIODEOFFSET(ctrl.pi_data) - 11);
+
+	if (ctrl.pi_data & 0x1)
+		warnx("Thermtrip bit set on CPU %d, system overheating?");
+
+	if (correct && DIODEOFFSET(ctrl.pi_data) > 0)
+		return(CURTMP(ctrl.pi_data) + (DIODEOFFSET(ctrl.pi_data) - 11) - 49);
+	else
+		return(CURTMP(ctrl.pi_data) - 49);
 }
 
 
@@ -138,6 +162,22 @@ int main(int argc, char *argv[])
 	int fd;
 	int cpu,core,sensor,cores,temp;
 	int exit_code = EXIT_FAILURE;
+	int opt;
+
+	while ((opt = getopt(argc, argv, "dvn")) != -1)
+		switch (opt) {
+		case 'd':
+			debug = 1;
+			break;
+		case 'v':
+			printf("k8temp v%s\nCopyright 2007 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
+			exit(EXIT_SUCCESS);
+		case 'n':
+			correct = 0;
+			break;
+		default:
+			usage();
+		}
 
 	fd = open(_PATH_DEVPCI, O_RDWR, 0);
 
@@ -167,12 +207,15 @@ int main(int argc, char *argv[])
 
 	for (p = conf; p < &conf[pc.num_matches]; p++)
 	{
+		if (debug)
+			fprintf(stderr, "Probe device: %d:%d:%d\n",
+			        p->pc_sel.pc_bus, p->pc_sel.pc_dev, p->pc_sel.pc_func);
 		for (core = 0; core < 2; core++)
 		{
 			for (sensor = 0; sensor < 2; sensor++)
 			{
 				temp = get_temp(fd, p->pc_sel, core, sensor);
-				if (temp > 0)
+				if (temp > TEMP_MIN)
 				{
 					printf("CPU %d Core %d Sensor %d: %dc\n", cpu, core, sensor, temp);
 					exit_code = EXIT_SUCCESS;
