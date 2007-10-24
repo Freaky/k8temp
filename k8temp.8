@@ -26,6 +26,9 @@
 .Nd "display on-die temperature readings from AMD K8 processors"
 .Sh SYNOPSIS
 .Nm
+.Op Fl dc
+.Op Fl v
+.Op Fl h
 .Sh DESCRIPTION
 The
 .Nm
@@ -34,18 +37,38 @@ their on-die thermal diode(s).
 .Pp
 .Nm
 requires read-write access to /dev/pci, and thus must be run as root.
+.Pp
+The following options are available:
+.Bl -tag -width indent
+.It Fl v
+Display version and copyright information.
+.It Fl h
+Display help text.
+.It Fl d
+Display debug information, including raw register contents and interpreted subvalues.
+.It Fl c
+Apply diode offset correction based on DiodeOffset register bits.
+.El
 .Sh BUGS
 .Nm
 may cause unsupported systems to reboot, crash or explode.
 .Pp
 Core numbers on single core systems may be incorrect.
 .Pp
-No attempt is made to apply correction offsets to readings.
+Returned values may be wildly incorrect, even, or especially when offset corretion is applied.
 .Pp
-Readings below 1c will be ignored.
+CPUID is not checked to ensure Thermtrip register support.
 .Sh HISTORY
-The
-.Nm
-utility was first written in October 2007.
+.Bl -tag -width indent
+.It 0.1.0
+First release, dated 2007-10-21.
+.It 0.1.1
+Dated 2007-10-22, fixes a serious error resulting in writes to a bogus PCI register.
+.It 0.2.0
+Dated 2007-10-25, adds support for diode offset correction and debugging options.
+.El
+.Sh SEE ALSO
+BIOS and Kernel Developer's Guide for AMD NPT Family 0fh Processors.
+Section 4.6.23, Thermtrip Status Register.
 .Sh AUTHOR
 Thomas Hurst <tom@hur.st>
