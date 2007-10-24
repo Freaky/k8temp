@@ -69,6 +69,12 @@
 int debug = 0;
 int correct = 0;
 
+void check_cpuid(void);
+int get_temp(int fd, struct pcisel dev, int core, int sensor);
+int main(int argc, char *argv[]);
+void usage(int exit_code);
+void version(void);
+
 void usage(int exit_code)
 {
 	fprintf((exit_code == EXIT_SUCCESS ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n",
@@ -101,13 +107,13 @@ void version(void)
 #define TEMP_MIN -49
 #define TEMP_ERR -255
 
+
 void check_cpuid(void)
 {
 	unsigned int vendor[3];
 	unsigned int stepping,unused;
 	asm("cpuid": "=a" (unused), "=b" (vendor[0]), "=c" (vendor[2]), "=d" (vendor[1]) : "a" (0));
 
-	/* evil? */
 	if (0 != memcmp((char *)&vendor, "AuthenticAMD", 12))
 		errx(EXIT_FAILURE, "Only AMD CPU's are supported by k8temp");
 
@@ -120,7 +126,7 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 {
 	static int thermtp = 0;
 	struct pci_io ctrl;
-	int reg;
+	unsigned int reg;
 	bzero(&ctrl, sizeof(ctrl));
 
 	ctrl.pi_sel = dev;
