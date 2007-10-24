@@ -66,14 +66,21 @@
 int debug = 0;
 int correct = 1;
 
-void usage(void)
+void usage(int exit_code)
 {
-	fprintf(stderr, "%s\n%s\n%s\n%s\n",
-			"usage: k8temp [-dn | -v]",
+	fprintf((exit_code == EXIT_SUCCESS ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n",
+			"usage: k8temp [-dn | -v | -h]",
 			"  -v    Display version information",
+			"  -h    Display this help text",
 			"  -d    Dump debugging info",
 			"  -n    Do not apply diode offset correction");
-	exit(EXIT_FAILURE);
+	exit(exit_code);
+}
+
+void version(void)
+{
+	printf("k8temp v%s\nCopyright 2007 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
+	exit(EXIT_SUCCESS);
 }
 
 /*
@@ -92,9 +99,9 @@ void usage(void)
 
 int get_temp(int fd, struct pcisel dev, int core, int sensor)
 {
-	char reg;
+	static int thermtp = 0;
 	struct pci_io ctrl;
-	int tcontrol,curtmp,tjoffset;
+	int reg;
 	bzero(&ctrl, sizeof(ctrl));
 
 	ctrl.pi_sel = dev;
@@ -111,13 +118,13 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 		reg &= ~SEL_CORE;
 	else if (core == 0)
 		reg |= SEL_CORE;
-	else return(-1);
+	else return(TEMP_ERR);
 
 	if (sensor == 0)
 		reg &= ~SEL_SENSOR;
 	else if (sensor == 1)
 		reg |= SEL_SENSOR;
-	else return(-1);
+	else return(TEMP_ERR);
 
 	ctrl.pi_data = reg;
 	if (ioctl(fd, PCIOCWRITE, &ctrl) == -1)
@@ -137,20 +144,22 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 	if ((reg & (SEL_CORE|SEL_SENSOR)) != (ctrl.pi_data & (SEL_CORE|SEL_SENSOR)))
 		return(TEMP_ERR);
 
+	/* Bit 1 is Thermtrip */
+	if (reg & 0x1 && !thermtp)
+	{
+		fprintf(stderr, "Thermal trip bit set, system overheating?\n");
+		thermtp = 1;
+	}
+
+	reg = ctrl.pi_data;
 	if (debug)
-		fprintf(stderr, "Read: 0x%08x (CurTmp=0x%02x (%dc) TjOffset=0x%02x DiodeOffset=0x%02x (%dc))\n",
-		        ctrl.pi_data,
-		        CURTMP(ctrl.pi_data), CURTMP(ctrl.pi_data) - 49,
-		        TJOFFSET(ctrl.pi_data),
-		        DIODEOFFSET(ctrl.pi_data), DIODEOFFSET(ctrl.pi_data) - 11);
+		fprintf(stderr, "Thermtrip=0x%08x (CurTmp=0x%02x (%dc) TjOffset=0x%02x DiodeOffset=0x%02x (%dc))\n",
+		        reg, CURTMP(reg), CURTMP(reg) - 49, TJOFFSET(reg), DIODEOFFSET(reg), 11 - DIODEOFFSET(reg));
 
-	if (ctrl.pi_data & 0x1)
-		warnx("Thermtrip bit set on CPU %d, system overheating?");
-
-	if (correct && DIODEOFFSET(ctrl.pi_data) > 0)
-		return(CURTMP(ctrl.pi_data) + (DIODEOFFSET(ctrl.pi_data) - 11) - 49);
+	if (correct && DIODEOFFSET(reg) > 0)
+		return(CURTMP(reg) + (11 - DIODEOFFSET(reg)) - 49);
 	else
-		return(CURTMP(ctrl.pi_data) - 49);
+		return(CURTMP(reg) - 49);
 }
 
 
@@ -160,23 +169,25 @@ int main(int argc, char *argv[])
 	struct pci_match_conf pat;
 	struct pci_conf conf[255], *p;
 	int fd;
-	int cpu,core,sensor,cores,temp;
+	int cpu,core,sensor,temp;
 	int exit_code = EXIT_FAILURE;
 	int opt;
 
-	while ((opt = getopt(argc, argv, "dvn")) != -1)
+	while ((opt = getopt(argc, argv, "dvnh")) != -1)
 		switch (opt) {
 		case 'd':
 			debug = 1;
 			break;
 		case 'v':
-			printf("k8temp v%s\nCopyright 2007 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
+			version();
 			exit(EXIT_SUCCESS);
 		case 'n':
 			correct = 0;
 			break;
+		case 'h':
+			usage(EXIT_SUCCESS);
 		default:
-			usage();
+			usage(EXIT_FAILURE);
 		}
 
 	fd = open(_PATH_DEVPCI, O_RDWR, 0);
@@ -201,11 +212,9 @@ int main(int argc, char *argv[])
 	if (ioctl(fd, PCIOCGETCONF, &pc) == -1 || pc.status == PCI_GETCONF_ERROR)
 	{
 		perror("ioctl(PCIOCGETCONF)");
-		close(fd);
-		exit(EXIT_FAILURE);
+		exit_code = EXIT_FAILURE;
 	}
-
-	for (p = conf; p < &conf[pc.num_matches]; p++)
+	else for (p = conf; p < &conf[pc.num_matches]; p++)
 	{
 		if (debug)
 			fprintf(stderr, "Probe device: %d:%d:%d\n",
