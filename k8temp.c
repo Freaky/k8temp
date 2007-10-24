@@ -30,8 +30,10 @@
  * Usage: gcc -o k8temp k8temp.c && sudo ./k8temp
  *
  * Tested on FreeBSD 6-STABLE/amd64 on a dual dual core Opteron 275:
- * CPU 0 Core 0 Sensor 0: 50c
- * CPU 1 Core 0 Sensor 0: 48c
+ * CPU 0 Core 0 Sensor 0: 44c
+ * CPU 0 Core 1 Sensor 0: 45c
+ * CPU 1 Core 0 Sensor 0: 41c
+ * CPU 1 Core 1 Sensor 0: 41c
  *
  * 6.1-RELEASE/amd64 on a dual core Opteron 175:
  * CPU 0 Core 0 Sensor 0: 36c
@@ -64,7 +66,7 @@
 #define PCI_DEVICE_ID_AMD_K8_MISC_CTRL 0x1103
 
 int debug = 0;
-int correct = 1;
+int correct = 0;
 
 void usage(int exit_code)
 {
@@ -73,7 +75,7 @@ void usage(int exit_code)
 			"  -v    Display version information",
 			"  -h    Display this help text",
 			"  -d    Dump debugging info",
-			"  -n    Do not apply diode offset correction");
+			"  -c    Apply diode offset correction");
 	exit(exit_code);
 }
 
@@ -94,6 +96,7 @@ void version(void)
 #define TJOFFSET(val)   (((val) >> 24) & 0xf)
 #define DIODEOFFSET(val)   (((val) >> 8) & 0x3f)
 
+#define OFFSET_MAX 11
 #define TEMP_MIN -49
 #define TEMP_ERR -255
 
@@ -154,12 +157,13 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 	reg = ctrl.pi_data;
 	if (debug)
 		fprintf(stderr, "Thermtrip=0x%08x (CurTmp=0x%02x (%dc) TjOffset=0x%02x DiodeOffset=0x%02x (%dc))\n",
-		        reg, CURTMP(reg), CURTMP(reg) - 49, TJOFFSET(reg), DIODEOFFSET(reg), 11 - DIODEOFFSET(reg));
+		        reg, CURTMP(reg), CURTMP(reg) + TEMP_MIN, TJOFFSET(reg),
+		        DIODEOFFSET(reg), OFFSET_MAX - DIODEOFFSET(reg));
 
 	if (correct && DIODEOFFSET(reg) > 0)
-		return(CURTMP(reg) + (11 - DIODEOFFSET(reg)) - 49);
+		return((CURTMP(reg) + TEMP_MIN) + (OFFSET_MAX - DIODEOFFSET(reg)));
 	else
-		return(CURTMP(reg) - 49);
+		return(CURTMP(reg) + TEMP_MIN);
 }
 
 
@@ -173,7 +177,7 @@ int main(int argc, char *argv[])
 	int exit_code = EXIT_FAILURE;
 	int opt;
 
-	while ((opt = getopt(argc, argv, "dvnh")) != -1)
+	while ((opt = getopt(argc, argv, "dvch")) != -1)
 		switch (opt) {
 		case 'd':
 			debug = 1;
@@ -181,8 +185,8 @@ int main(int argc, char *argv[])
 		case 'v':
 			version();
 			exit(EXIT_SUCCESS);
-		case 'n':
-			correct = 0;
+		case 'c':
+			correct = 1;
 			break;
 		case 'h':
 			usage(EXIT_SUCCESS);
@@ -224,7 +228,7 @@ int main(int argc, char *argv[])
 			for (sensor = 0; sensor < 2; sensor++)
 			{
 				temp = get_temp(fd, p->pc_sel, core, sensor);
-				if (temp > TEMP_MIN)
+				if (temp > TEMP_MIN + OFFSET_MAX)
 				{
 					printf("CPU %d Core %d Sensor %d: %dc\n", cpu, core, sensor, temp);
 					exit_code = EXIT_SUCCESS;
