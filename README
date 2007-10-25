@@ -6,26 +6,63 @@ Synopsis
 k8temp displays readings from the on-die thermal diodes found in most
 AMD K8 processors, including Athlon 64's and Opterons.
 
-Please see the warning below.
+Please see the warning below, and remember to check the manpage.
 
 
-Example
--------
+Examples
+--------
 -% sudo k8temp
-CPU 0 Core 0 Sensor 0: 48c
-CPU 0 Core 1 Sensor 0: 50c
-CPU 1 Core 0 Sensor 0: 49c
-CPU 1 Core 1 Sensor 0: 47c
+CPU 0 Core 0 Sensor 0: 35c
+CPU 0 Core 1 Sensor 0: 36c
+CPU 1 Core 0 Sensor 0: 33c
+CPU 1 Core 1 Sensor 0: 32c
+
+-% sudo k8temp -c
+CPU 0 Core 0 Sensor 0: 40c
+CPU 0 Core 1 Sensor 0: 42c
+CPU 1 Core 0 Sensor 0: 43c
+CPU 1 Core 1 Sensor 0: 42c
 
 Yes, some AMD64's allegedly have two sensors per core.
+
+-% sudo k8temp -d
+CPUID: Vendor: AuthenticAMD, Id=0x20f12 Model=2 Family=1 Stepping=15
+Advanced Power Management=0xf
+   Temperature sensor: Yes
+ Frequency ID control: Yes
+   Voltage ID control: Yes
+    THERMTRIP support: Yes
+   HW Thermal control: No
+   SW Thermal control: No
+   100MHz multipliers: No
+   HW P-State control: No
+        TSC Invariant: No
+Probe device: 0:24:3
+Thermtrip=0x0d540524 (CurTmp=0x54 (35c) TjOffset=0x0d DiodeOffset=0x05 (6c))
+CPU 0 Core 0 Sensor 0: 35c
+Thermtrip=0x0d560520 (CurTmp=0x56 (37c) TjOffset=0x0d DiodeOffset=0x05 (6c))
+CPU 0 Core 1 Sensor 0: 37c
+Probe device: 0:25:3
+Thermtrip=0x0f520224 (CurTmp=0x52 (33c) TjOffset=0x0f DiodeOffset=0x02 (9c))
+CPU 1 Core 0 Sensor 0: 33c
+Thermtrip=0x0f520220 (CurTmp=0x52 (33c) TjOffset=0x0f DiodeOffset=0x02 (9c))
+CPU 1 Core 1 Sensor 0: 33c
 
 
 Installation
 ------------
-make
+Preferably, use the FreeBSD port, sysutils/k8temp.
 
-Put k8temp and k8temp.8 wherever.
+Otherwise, just:
 
+  make
+  make install
+
+If you want to try it on a system without bsd.prog.mk:
+
+  cc -o k8temp k8temp.c
+
+Let me know if you get it working on systems other than FreeBSD 6/amd64.
 
 =======
 WARNING
@@ -33,7 +70,23 @@ WARNING
 Since this pokes at /dev/pci, it has the potential to make your system crash,
 reboot, catch fire, and frame you for conspiracy to murder heads of state.
 
-Out of 5 test machines, I've only managed to kill one of them, and the code
-responsible for that has been removed.  Still, I don't recommend trying it on
-production systems you can't afford to die.
+k8temp has caused at least one of these things to happen during development.
 
+
+References
+----------
+BIOS and Kernel Developer's Guide for AMD NPT Family 0fh Processors.
+ Section 4.6.23, Thermtrip Status Register.
+  http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
+
+AMD CPUID Specification, revision 2.26.
+  http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/25481.pdf
+
+Linux kernel, drivers/hwmon/k8temp.c
+
+
+Blame
+-----
+k8temp was written by Thomas Hurst <tom@hur.st>
+
+WWW:  http://hur.st/k8temp/

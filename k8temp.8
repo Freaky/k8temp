@@ -45,7 +45,8 @@ Display version and copyright information.
 .It Fl h
 Display help text.
 .It Fl d
-Display debug information, including raw register contents and interpreted subvalues.
+Display debug information, including raw register contents and interpreted subvalues, and
+an Advanced Power Management feature dump.
 .It Fl c
 Apply diode offset correction based on DiodeOffset register bits.
 .El
@@ -56,19 +57,19 @@ may cause unsupported systems to reboot, crash or explode.
 Core numbers on single core systems may be incorrect.
 .Pp
 Returned values may be wildly incorrect, even, or especially when offset corretion is applied.
-.Pp
-CPUID is not checked to ensure Thermtrip register support.
 .Sh HISTORY
 .Bl -tag -width indent
-.It 0.1.0
-First release, dated 2007-10-21.
-.It 0.1.1
-Dated 2007-10-22, fixes a serious error resulting in writes to a bogus PCI register.
-.It 0.2.0
-Dated 2007-10-25, adds support for diode offset correction and debugging options.
+.It 0.1.0, 2007-10-21
+First release.
+.It 0.1.1, 2007-10-22
+Fixes a serious error resulting in writes to a bogus PCI register.
+.It 0.2.0, 2007-10-25
+Add support for diode offset correction and debugging options.  Add CPUID check.
 .El
 .Sh SEE ALSO
 BIOS and Kernel Developer's Guide for AMD NPT Family 0fh Processors.
 Section 4.6.23, Thermtrip Status Register.
+.Pp
+AMD CPUID Specification, CPUID Fn8000_0007, Advanced Power Management Information.
 .Sh AUTHOR
 Thomas Hurst <tom@hur.st>
