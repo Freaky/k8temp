@@ -107,19 +107,63 @@ void version(void)
 #define TEMP_MIN -49
 #define TEMP_ERR -255
 
+#define CPUID_EXTENDED 0x80000000
+#define CPUID_POWERMGT 0x80000007
+
+const char *advPwrMgtFlags[] = {
+	"Temperature sensor",
+	"Frequency ID control",
+	"Voltage ID control",
+	"THERMTRIP support",
+	"HW Thermal control",
+	"SW Thermal control",
+	"100MHz multipliers",
+	"HW P-State control",
+	"TSC Invariant",
+	NULL,
+};
 
 void check_cpuid(void)
 {
 	unsigned int vendor[3];
-	unsigned int stepping,unused;
+	unsigned int maxeid,cpuid,pwrmgt,unused;
+	int i;
+
 	asm("cpuid": "=a" (unused), "=b" (vendor[0]), "=c" (vendor[2]), "=d" (vendor[1]) : "a" (0));
+	asm("cpuid": "=a" (cpuid), "=b" (unused), "=c" (unused), "=d" (unused) : "a" (1));
+
+	if (debug)
+		fprintf(stderr, "CPUID: Vendor: %12s, Id=0x%x Model=%d Family=%d Stepping=%d\n",
+		        (char *)vendor, cpuid, cpuid & 0xf, (cpuid >> 4) & 0xf, (cpuid >> 8) & 0xf);
 
 	if (0 != memcmp((char *)&vendor, "AuthenticAMD", 12))
 		errx(EXIT_FAILURE, "Only AMD CPU's are supported by k8temp");
 
-	asm("cpuid": "=a" (stepping), "=b" (unused), "=c" (unused), "=d" (unused) : "a" (1));
-	if (stepping == 0xf40 || stepping == 0xf50 || stepping == 0xf51)
-		errx(EXIT_FAILURE, "This CPU stepping does not support Thermtrip.");
+	asm("cpuid": "=a" (maxeid), "=b" (unused), "=c" (unused), "=d" (unused) : "a" (CPUID_EXTENDED));
+
+	if (maxeid >= CPUID_POWERMGT)
+	{
+		asm("cpuid": "=a" (unused), "=b" (unused), "=c" (unused), "=d" (pwrmgt) : "a" (CPUID_POWERMGT));
+		if (debug)
+		{
+			/* overkill \o/ */
+			fprintf(stderr, "Advanced Power Management: edx=0x%x\n", pwrmgt);
+			i = 0;
+			do
+			{
+				fprintf(stderr, " %20s: %s\n", advPwrMgtFlags[i],
+				        (pwrmgt >> i) & 1 ? "Yes" : "No");
+			}
+			while (advPwrMgtFlags[++i]);
+		}
+		if (!(pwrmgt & 1))
+			errx(EXIT_FAILURE, "Thermal sensor support not reported in CPUID");
+	}
+	else
+		errx(EXIT_FAILURE, "CPU lacks Advanced Power Management support");
+
+	if (cpuid == 0xf40 || cpuid == 0xf50 || cpuid == 0xf51)
+		errx(EXIT_FAILURE, "This CPU stepping does not support thermal sensors.");
 }
 
 int get_temp(int fd, struct pcisel dev, int core, int sensor)
