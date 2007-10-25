@@ -102,6 +102,7 @@ void version(void)
 #define CURTMP(val)     (((val) >> 16) & 0xff)
 #define TJOFFSET(val)   (((val) >> 24) & 0xf)
 #define DIODEOFFSET(val)   (((val) >> 8) & 0x3f)
+#define THERMTRIP(val)  ((val) & 1)
 
 #define OFFSET_MAX 11
 #define TEMP_MIN -49
@@ -147,7 +148,7 @@ void check_cpuid(void)
 		if (debug)
 		{
 			/* overkill \o/ */
-			fprintf(stderr, "Advanced Power Management: edx=0x%x\n", pwrmgt);
+			fprintf(stderr, "Advanced Power Management=0x%x\n", pwrmgt);
 			i = 0;
 			do
 			{
@@ -162,6 +163,7 @@ void check_cpuid(void)
 	else
 		errx(EXIT_FAILURE, "CPU lacks Advanced Power Management support");
 
+	/* Linux only checks these 3 */
 	if (cpuid == 0xf40 || cpuid == 0xf50 || cpuid == 0xf51)
 		errx(EXIT_FAILURE, "This CPU stepping does not support thermal sensors.");
 }
@@ -213,8 +215,7 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 	if ((reg & (SEL_CORE|SEL_SENSOR)) != (ctrl.pi_data & (SEL_CORE|SEL_SENSOR)))
 		return(TEMP_ERR);
 
-	/* Bit 1 is Thermtrip */
-	if (reg & 0x1 && !thermtp)
+	if (THERMTRIP(reg) && !thermtp)
 	{
 		fprintf(stderr, "Thermal trip bit set, system overheating?\n");
 		thermtp = 1;
