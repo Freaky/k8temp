@@ -1,7 +1,8 @@
 /*
  * k8temp -- AMD K8 (AMD64, Opteron) on-die thermal sensor reader for FreeBSD.
- * Might work in the other BSD's if they have a compatible /dev/pci
- * Single core systems may get a bogus second core reading.
+ * Should work in DfBSD, since it has pretty much the same /dev/pci
+ * OpenBSD feasable with USER_PCICONF support, but I don't see PCIOCGETCONF in pci(4)
+ * NetBSD has -lpci, can be supported with a bit of effort.
  *
  * Copyright (c) 2007 Thomas Hurst <tom@hur.st>
  *
@@ -135,7 +136,7 @@ void check_cpuid(void)
 
 	if (debug)
 		fprintf(stderr, "CPUID: Vendor: %12s, Id=0x%x Model=%d Family=%d Stepping=%d\n",
-		        (char *)vendor, cpuid, cpuid & 0xf, (cpuid >> 4) & 0xf, (cpuid >> 8) & 0xf);
+		        (char *)vendor, cpuid, (cpuid >> 4) & 0xf, (cpuid >> 8) & 0xf, cpuid & 0xf);
 
 	if (0 != memcmp((char *)&vendor, "AuthenticAMD", 12))
 		errx(EXIT_FAILURE, "Only AMD CPU's are supported by k8temp");
