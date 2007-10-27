@@ -135,7 +135,7 @@ void check_cpuid(void)
 	asm("cpuid": "=a" (cpuid), "=b" (unused), "=c" (unused), "=d" (unused) : "a" (1));
 
 	if (debug)
-		fprintf(stderr, "CPUID: Vendor: %12s, Id=0x%x Model=%d Family=%d Stepping=%d\n",
+		fprintf(stderr, "CPUID: Vendor: %.12s, Id=0x%x Model=%d Family=%d Stepping=%d\n",
 		        (char *)vendor, cpuid, (cpuid >> 4) & 0xf, (cpuid >> 8) & 0xf, cpuid & 0xf);
 
 	if (0 != memcmp((char *)&vendor, "AuthenticAMD", 12))
