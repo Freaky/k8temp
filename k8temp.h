@@ -1,3 +1,5 @@
+
+#ifndef _K8TEMP_H_
 #include <err.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -50,4 +52,4 @@ const char *advPwrMgtFlags[] = {
 	"TSC Invariant",
 	NULL,
 };
-
+#endif
