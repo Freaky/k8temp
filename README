@@ -62,11 +62,13 @@ If you want to try it on a system without bsd.prog.mk:
 
   cc -o k8temp k8temp.c k8temp_devpci.c
 
-You may wish to define WITHOUT_PCIOCGETCONF on OpenBSD.
+OpenBSD users may want:
+
+  cc -DWITHOUT_PCIOCGETCONF -o k8temp k8temp.c k8temp_devpci.c
 
 NetBSD users can try:
 
-  cc -o k8temp k8temp.c k8temp_libpci.c
+  cc -DWITH_LIBPCI -o k8temp k8temp.c k8temp_libpci.c
 
 But it almost certainly won't work, since I haven't even compile tested it.
 Feel free to fix it.
