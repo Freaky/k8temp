@@ -59,8 +59,6 @@
 
 #include "k8temp.h"
 
-#define _PATH_DEVPCI "/dev/pci"
-
 int debug = 0;
 int correct = 0;
 

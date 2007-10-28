@@ -5,6 +5,7 @@
 #include <strings.h>
 #include <string.h>
 
+#define _PATH_DEVPCI "/dev/pci"
 #define PCI_VENDOR_ID_AMD              0x1022
 #define PCI_DEVICE_ID_AMD_K8_MISC_CTRL 0x1103
 
