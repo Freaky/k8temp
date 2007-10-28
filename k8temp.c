@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-#define K8TEMP_VERSION "0.3.0"
+#define K8TEMP_VERSION "0.3.0pre1"
 
 /*
  * Usage: gcc -o k8temp k8temp.c && sudo ./k8temp
@@ -52,10 +52,10 @@
  *
  */
 
-#ifndef WITHOUT_DEVPCI
-#include "k8temp_devpci.h"
+#ifdef WITH_LIBPCI
+# include "k8temp_libpci.h"
 #else
-#error Build without /dev/pci support not yet implemented
+# include "k8temp_devpci.h"
 #endif
 
 #include "k8temp.h"
@@ -70,7 +70,7 @@ void usage(int exit_code)
 			"  -v    Display version information",
 			"  -h    Display this help text",
 			"  -d    Dump debugging info",
-			"  -c    Apply diode offset correction");
+			"  -c    Apply diode offset correction (not recommended)");
 	exit(exit_code);
 }
 

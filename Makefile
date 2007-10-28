@@ -10,16 +10,15 @@ PROG= k8temp
 
 SRCS= k8temp.c
 
-
 .if defined(WITHOUT_PCIOCGETCONF) || defined(OPENBSD)
 CFLAGS+= -DWITHOUT_PCIOCGETCONF
 .endif
 
-.if !defined(WITHOUT_DEVPCI)
-SRCS+= k8temp_devpci.c
+.if defined(WITH_LIBPCI) || defined(NETBSD)
+SRCS+= k8temp_libpci.c
+CFLAGS+= -DWITH_LIBPCI
 .else
-CFLAGS+= -DWITHOUT_DEVPCI
+SRCS+= k8temp_devpci.c
 .endif
-
 
 .include "bsd.prog.mk"
