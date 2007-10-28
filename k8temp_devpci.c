@@ -17,7 +17,6 @@
 
 int fd;
 
-// perform any setup, exit on failure
 void k8_pci_init()
 {
 	fd = open(_PATH_DEVPCI, O_RDWR, 0);
@@ -88,9 +87,6 @@ int k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev_t devs[], 
 	return(matches);
 }
 
-// k8_pci_read_*() fill data with the value at offset,
-// on failure, print diagnostic and return 0
-
 int k8_pci_read(k8_pcidev_t dev, int offset, int *data, int width)
 {
 	struct pci_io ctrl;
@@ -120,7 +116,6 @@ int k8_pci_read_word(k8_pcidev_t dev, int offset, int *data)
 	return(k8_pci_read(dev, offset, data, 4));
 }
 
-// same, but for writes.
 int k8_pci_write(k8_pcidev_t dev, int offset, int data, int width)
 {
 	struct pci_io ctrl;
@@ -142,13 +137,11 @@ int k8_pci_write(k8_pcidev_t dev, int offset, int data, int width)
 
 int k8_pci_write_byte(k8_pcidev_t dev, int offset, int data)
 {
-//	return(1);
 	return(k8_pci_write(dev, offset, data, 1));
 }
 
 int k8_pci_write_word(k8_pcidev_t dev, int offset, int data)
 {
-//	return(4);
 	return(k8_pci_write(dev, offset, data, 4));
 }
 

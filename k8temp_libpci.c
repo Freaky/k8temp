@@ -9,7 +9,6 @@
 
 int fd;
 
-// perform any setup, exit on failure
 void k8_pci_init()
 {
 	fd = open(_PATH_DEVPCI, O_RDWR, 0);
@@ -37,22 +36,17 @@ int k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev_t devs[], 
 		for (func=0; func < 8; func++)
 		{
 			sel.func = func;
-			if (k8_pci_read_word(sel, 0, &pcireg))
+			if (k8_pci_read_word(sel, 0, &pcireg) &&
+			   (pcireg & 0xffff) == vendor_id &&
+			   ((pcireg >> 16) & 0xffff) == device_id &&
+			   matches < maxdev)
 			{
-				if ((pcireg & 0xffff) == vendor_id &&
-				   ((pcireg >> 16) & 0xffff) == device_id &&
-				   matches < maxdev)
-				{
-					memcpy(&devs[++matches], &sel, sizeof(k8_pcidev_t));
-				}
+				memcpy(&devs[++matches], &sel, sizeof(k8_pcidev_t));
 			}
 		}
 	}
 	return(matches);
 }
-
-// k8_pci_read_*() fill data with the value at offset,
-// on failure, print diagnostic and return 0
 
 int k8_pci_read(k8_pcidev_t dev, int offset, int *data, int width)
 {
@@ -65,7 +59,7 @@ int k8_pci_read(k8_pcidev_t dev, int offset, int *data, int width)
 	switch (width)
 	{
 	case 1:
-		*buf = *buf & 0xf;
+		*buf = *buf & 0xff;
 		break;
 	case 4:
 		break;
@@ -85,12 +79,11 @@ int k8_pci_read_word(k8_pcidev_t dev, int offset, int *data)
 	return(k8_pci_read(dev, offset, data, 4));
 }
 
-// same, but for writes.
 int k8_pci_write(k8_pcidev_t dev, int offset, int data, int width)
 {
-	/* XXX: we don't bother with read-modify-write, as our specific
-	 * use is known-safe without it.  Beware if you want to use this
-	 * for anything else, though.
+	/* XXX: Note, libpci doesn't support <4 byte writes.
+	 * Luckily the upper 24 bits of Thermtrip is read-only, so it doesn't
+	 * matter, but we should take care if we end up writing anywhere else.
 	 */
 	if (pcibus_conf_write(fd, dev.bus, dev.dev, dev.func, offset, data) < 0)
 	{
@@ -103,13 +96,11 @@ int k8_pci_write(k8_pcidev_t dev, int offset, int data, int width)
 
 int k8_pci_write_byte(k8_pcidev_t dev, int offset, int data)
 {
-//	return(1);
 	return(k8_pci_write(dev, offset, data, 1));
 }
 
 int k8_pci_write_word(k8_pcidev_t dev, int offset, int data)
 {
-//	return(4);
 	return(k8_pci_write(dev, offset, data, 4));
 }
 

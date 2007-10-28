@@ -65,10 +65,11 @@ int correct = 0;
 
 void usage(int exit_code)
 {
-	fprintf((exit_code == EXIT_SUCCESS ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n",
-			"usage: k8temp [-dc | -v | -h] [cpu[:core[:sensor]] ...]",
+	fprintf((exit_code == EXIT_SUCCESS ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n%s\n",
+			"usage: k8temp [-ndc | -v | -h] [cpu[:core[:sensor]] ...]",
 			"  -v    Display version information",
 			"  -h    Display this help text",
+			"  -n    Display number or UNKNOWN only",
 			"  -d    Dump debugging info",
 			"  -c    Apply diode offset correction (not recommended)");
 	exit(exit_code);
@@ -130,10 +131,7 @@ int get_temp(k8_pcidev_t dev, int core, int sensor)
 	unsigned int ctrl,therm;
 
 	if (!k8_pci_read_byte(dev, THERM_REG, &ctrl))
-	{
-		perror("ThermTrip register read failed");
 		return(TEMP_ERR);
-	}
 
 	if (core == 1) /* CPU0 has the bit set according to datasheet */
 		ctrl &= ~SEL_CORE;
@@ -148,16 +146,10 @@ int get_temp(k8_pcidev_t dev, int core, int sensor)
 	else return(TEMP_ERR);
 
 	if (!k8_pci_write_byte(dev, THERM_REG, ctrl))
-	{
-		perror("ThermTrip register write failed");
 		return(TEMP_ERR);
-	}
 
 	if (!k8_pci_read_word(dev, THERM_REG, &therm))
-	{
-		perror("ThermTrip register read failed");
 		return(TEMP_ERR);
-	}
 
 	/* verify the selection took */
 	if ((ctrl & (SEL_CORE|SEL_SENSOR)) != (therm & (SEL_CORE|SEL_SENSOR)))
@@ -187,11 +179,12 @@ int main(int argc, char *argv[])
 	int temp;
 	int exit_code = EXIT_FAILURE;
 	int opt;
+	int value_only = 0;
+	int i;
 	char selections[MAX_CPU][MAX_CORE][MAX_SENSOR];
+	int selcount,selected = 0;
 
-	bzero(&selections, sizeof(selections));
-
-	while ((opt = getopt(argc, argv, "dvch")) != -1)
+	while ((opt = getopt(argc, argv, "dvchn")) != -1)
 		switch (opt) {
 		case 'd':
 			debug = 1;
@@ -202,14 +195,17 @@ int main(int argc, char *argv[])
 		case 'c':
 			correct = 1;
 			break;
+		case 'n':
+			value_only = 1;
+			break;
 		case 'h':
 			usage(EXIT_SUCCESS);
 		default:
 			usage(EXIT_FAILURE);
 		}
 
-	int selcount,selected = 0;
-	for (int i = optind; i < argc; i++)
+	bzero(&selections, sizeof(selections));
+	for (i = optind; i < argc; i++)
 	{
 		selcount = sscanf(argv[i], "%u:%u:%u", &cpu, &core, &sensor);
 		selected += selcount;
@@ -233,8 +229,6 @@ int main(int argc, char *argv[])
 			usage(EXIT_FAILURE);
 		}
 	}
-	if (0 == selected)
-		memset(selections, 1, sizeof(selections));
 
 	check_cpuid();
 	k8_pci_init();
@@ -248,14 +242,21 @@ int main(int argc, char *argv[])
 		{
 			for (sensor = 0; sensor < MAX_SENSOR; sensor++)
 			{
-				if (selections[cpu][core][sensor])
+				if (selected > 0 && !selections[cpu][core][sensor])
+					continue;
+
+				temp = get_temp(devs[cpu], core, sensor);
+				if (temp > TEMP_MIN + OFFSET_MAX)
 				{
-					temp = get_temp(devs[cpu], core, sensor);
-					if (temp > TEMP_MIN + OFFSET_MAX)
-					{
+					if (value_only)
+						printf("%d\n", temp);
+					else
 						printf("CPU %d Core %d Sensor %d: %dc\n", cpu, core, sensor, temp);
-						exit_code = EXIT_SUCCESS;
-					}
+					exit_code = EXIT_SUCCESS;
+				}
+				else if (value_only)
+				{
+					printf("UNKNOWN\n");
 				}
 			}
 		}
