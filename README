@@ -60,15 +60,24 @@ Otherwise, just:
 
 If you want to try it on a system without bsd.prog.mk:
 
-  cc -o k8temp k8temp.c
+  cc -o k8temp k8temp.c k8temp_devpci.c
+
+You may wish to define WITHOUT_PCIOCGETCONF on OpenBSD.
+
+NetBSD users can try:
+
+  cc -o k8temp k8temp.c k8temp_libpci.c
+
+But it almost certainly won't work, since I haven't even compile tested it.
+Feel free to fix it.
 
 Let me know if you get it working on systems other than FreeBSD 6/amd64.
 
 =======
 WARNING
 =======
-Since this pokes at /dev/pci, it has the potential to make your system crash,
-reboot, catch fire, and frame you for conspiracy to murder heads of state.
+Since this pokes at PCI registers, it has the potential to make your system
+crash, reboot, catch fire, and frame you for conspiracy to murder heads of state.
 
 k8temp has caused at least one of these things to happen during development.
 
