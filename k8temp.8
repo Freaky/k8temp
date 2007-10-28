@@ -26,7 +26,7 @@
 .Nd "display on-die temperature readings from AMD K8 processors"
 .Sh SYNOPSIS
 .Nm
-.Op Fl dc
+.Op Fl dc Ar [selector ...]
 .Op Fl v
 .Op Fl h
 .Sh DESCRIPTION
@@ -50,6 +50,18 @@ an Advanced Power Management feature dump.
 .It Fl c
 Apply diode offset correction based on DiodeOffset register bits (not recommended)
 .El
+.Pp
+Selectors specify which CPU, core and sensor to read, and are of the form
+cpu[:core[:sensor]].
+.Sh EXAMPLES
+.Bl -tag -width -indent
+.It k8temp 1:0:0
+Display reading for CPU1, core 0, sensor 0.
+.It k8temp 1:0
+Display reading for CPU1, core 0, all available sensors.
+.It k8temp -d 0 2
+Display reading for CPU 0 and CPU2, all available cores and sensors.  Display debug output.
+.El
 .Sh BUGS
 .Nm
 may cause unsupported systems to reboot, crash or explode.
@@ -72,4 +84,4 @@ Section 4.6.23, Thermtrip Status Register.
 .Pp
 AMD CPUID Specification, CPUID Fn8000_0007, Advanced Power Management Information.
 .Sh AUTHOR
-Thomas Hurst <tom@hur.st>
+.An "Thomas Hurst" Aq tom@hur.st
