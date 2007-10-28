@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-#define K8TEMP_VERSION "0.2.0"
+#define K8TEMP_VERSION "0.3.0"
 
 /*
  * Usage: gcc -o k8temp k8temp.c && sudo ./k8temp
@@ -52,10 +52,11 @@
  *
  */
 
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include <sys/pciio.h>
-#include <fcntl.h>
+#ifndef WITHOUT_DEVPCI
+#include "k8temp_devpci.h"
+#else
+#error Build without /dev/pci support not yet implemented
+#endif
 
 #include "k8temp.h"
 
@@ -123,78 +124,66 @@ void check_cpuid(void)
 		errx(EXIT_FAILURE, "This CPU stepping does not support thermal sensors.");
 }
 
-int get_temp(int fd, struct pcisel dev, int core, int sensor)
+int get_temp(k8_pcidev_t dev, int core, int sensor)
 {
 	static int thermtp = 0;
-	struct pci_io ctrl;
-	unsigned int reg;
-	bzero(&ctrl, sizeof(ctrl));
+	unsigned int ctrl,therm;
 
-	ctrl.pi_sel = dev;
-	ctrl.pi_reg = THERM_REG;
-	ctrl.pi_width = 1;
-	if (ioctl(fd, PCIOCREAD, &ctrl) == -1)
+	if (!k8_pci_read_byte(dev, THERM_REG, &ctrl))
 	{
 		perror("ThermTrip register read failed");
 		return(TEMP_ERR);
 	}
-	reg = ctrl.pi_data;
 
 	if (core == 1) /* CPU0 has the bit set according to datasheet */
-		reg &= ~SEL_CORE;
+		ctrl &= ~SEL_CORE;
 	else if (core == 0)
-		reg |= SEL_CORE;
+		ctrl |= SEL_CORE;
 	else return(TEMP_ERR);
 
 	if (sensor == 0)
-		reg &= ~SEL_SENSOR;
+		ctrl &= ~SEL_SENSOR;
 	else if (sensor == 1)
-		reg |= SEL_SENSOR;
+		ctrl |= SEL_SENSOR;
 	else return(TEMP_ERR);
 
-	ctrl.pi_data = reg;
-	if (ioctl(fd, PCIOCWRITE, &ctrl) == -1)
+	if (!k8_pci_write_byte(dev, THERM_REG, ctrl))
 	{
 		perror("ThermTrip register write failed");
 		return(TEMP_ERR);
 	}
 
-	ctrl.pi_width = 4;
-	if (ioctl(fd, PCIOCREAD, &ctrl) == -1)
+	if (!k8_pci_read_word(dev, THERM_REG, &therm))
 	{
 		perror("ThermTrip register read failed");
 		return(TEMP_ERR);
 	}
 
 	/* verify the selection took */
-	if ((reg & (SEL_CORE|SEL_SENSOR)) != (ctrl.pi_data & (SEL_CORE|SEL_SENSOR)))
+	if ((ctrl & (SEL_CORE|SEL_SENSOR)) != (therm & (SEL_CORE|SEL_SENSOR)))
 		return(TEMP_ERR);
 
-	if (THERMTRIP(reg) && !thermtp)
+	if (THERMTRIP(therm) && !thermtp)
 	{
 		fprintf(stderr, "Thermal trip bit set, system overheating?\n");
 		thermtp = 1;
 	}
 
-	reg = ctrl.pi_data;
 	if (debug)
 		fprintf(stderr, "Thermtrip=0x%08x (CurTmp=0x%02x (%dc) TjOffset=0x%02x DiodeOffset=0x%02x (%dc))\n",
-		        reg, CURTMP(reg), CURTMP(reg) + TEMP_MIN, TJOFFSET(reg),
-		        DIODEOFFSET(reg), OFFSET_MAX - DIODEOFFSET(reg));
+		        therm, CURTMP(therm), CURTMP(therm) + TEMP_MIN, TJOFFSET(therm),
+		        DIODEOFFSET(therm), OFFSET_MAX - DIODEOFFSET(therm));
 
-	if (correct && DIODEOFFSET(reg) > 0)
-		return((CURTMP(reg) + TEMP_MIN) + (OFFSET_MAX - DIODEOFFSET(reg)));
+	if (correct && DIODEOFFSET(therm) > 0)
+		return((CURTMP(therm) + TEMP_MIN) + (OFFSET_MAX - DIODEOFFSET(therm)));
 	else
-		return(CURTMP(reg) + TEMP_MIN);
+		return(CURTMP(therm) + TEMP_MIN);
 }
 
 int main(int argc, char *argv[])
 {
-	struct pci_conf_io pc;
-	struct pci_match_conf pat;
-	struct pci_conf conf[MAX_CPU], *p;
-	int fd;
-	unsigned int cpu,core,sensor;
+	k8_pcidev_t devs[MAX_CPU];
+	unsigned int cpucount,cpu,core,sensor;
 	int temp;
 	int exit_code = EXIT_FAILURE;
 	int opt;
@@ -248,43 +237,20 @@ int main(int argc, char *argv[])
 		memset(selections, 1, sizeof(selections));
 
 	check_cpuid();
+	k8_pci_init();
 
-	fd = open(_PATH_DEVPCI, O_RDWR, 0);
-
-	if (fd < 0)
-		err(EXIT_FAILURE, "open(\"%s\")", _PATH_DEVPCI);
-
-	bzero(&pc, sizeof(struct pci_conf_io));
-	bzero(&pat, sizeof(struct pci_match_conf));
-
-	pat.pc_vendor = PCI_VENDOR_ID_AMD;
-	pat.pc_device = PCI_DEVICE_ID_AMD_K8_MISC_CTRL;
-	pat.flags = PCI_GETCONF_MATCH_VENDOR | PCI_GETCONF_MATCH_DEVICE;
-	pc.patterns = &pat;
-	pc.num_patterns = 1;
-	pc.pat_buf_len = sizeof(pat);
-
-	pc.match_buf_len = sizeof(conf);
-	pc.matches = conf;
-
-	cpu = 0; /* XXX: Are the PCI devices going to come out in CPU-number order? */
-	if (ioctl(fd, PCIOCGETCONF, &pc) == -1 || pc.status == PCI_GETCONF_ERROR)
+	cpu = 0;
+	cpucount = k8_pci_vendor_device_list(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_K8_MISC_CTRL,
+	                                     devs, MAX_CPU);
+	for (cpu=0; cpu <= cpucount; cpu++)
 	{
-		perror("ioctl(PCIOCGETCONF)");
-		exit_code = EXIT_FAILURE;
-	}
-	else for (p = conf; p < &conf[pc.num_matches]; p++)
-	{
-		if (debug)
-			fprintf(stderr, "Probe device: %d:%d:%d\n",
-			        p->pc_sel.pc_bus, p->pc_sel.pc_dev, p->pc_sel.pc_func);
 		for (core = 0; core < MAX_CORE; core++)
 		{
 			for (sensor = 0; sensor < MAX_SENSOR; sensor++)
 			{
 				if (selections[cpu][core][sensor])
 				{
-					temp = get_temp(fd, p->pc_sel, core, sensor);
+					temp = get_temp(devs[cpu], core, sensor);
 					if (temp > TEMP_MIN + OFFSET_MAX)
 					{
 						printf("CPU %d Core %d Sensor %d: %dc\n", cpu, core, sensor, temp);
@@ -293,10 +259,9 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
-		cpu++;
 	}
 
-	close(fd);
+	k8_pci_close();
 	exit(exit_code);
 }
 

@@ -7,7 +7,6 @@
 #include <strings.h>
 #include <string.h>
 
-#define _PATH_DEVPCI "/dev/pci"
 #define PCI_VENDOR_ID_AMD              0x1022
 #define PCI_DEVICE_ID_AMD_K8_MISC_CTRL 0x1103
 
@@ -35,7 +34,7 @@
 #define CPUID_POWERMGT 0x80000007
 
 void check_cpuid(void);
-int get_temp(int fd, struct pcisel dev, int core, int sensor);
+int get_temp(k8_pcidev_t dev, int core, int sensor);
 int main(int argc, char *argv[]);
 void usage(int exit_code);
 void version(void);
