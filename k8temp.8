@@ -26,7 +26,7 @@
 .Nd "display on-die temperature readings from AMD K8 processors"
 .Sh SYNOPSIS
 .Nm
-.Op Fl dc Ar [selector ...]
+.Op Fl ndc Ar [selector ...]
 .Op Fl v
 .Op Fl h
 .Sh DESCRIPTION
@@ -44,6 +44,8 @@ The following options are available:
 Display version and copyright information.
 .It Fl h
 Display help text.
+.It Fl n
+Show only temperature values, including UNKNOWN for skipped values.
 .It Fl d
 Display debug information, including raw register contents and interpreted subvalues, and
 an Advanced Power Management feature dump.
@@ -52,7 +54,7 @@ Apply diode offset correction based on DiodeOffset register bits (not recommende
 .El
 .Pp
 Selectors specify which CPU, core and sensor to read, and are of the form
-cpu[:core[:sensor]].
+cpu[:core[:sensor]].  Note, output order is fixed, and not defined by the order of selectors.
 .Sh EXAMPLES
 .Bl -tag -width -indent
 .It k8temp 1:0:0
