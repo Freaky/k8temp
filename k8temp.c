@@ -56,25 +56,13 @@
 #include <sys/ioctl.h>
 #include <sys/pciio.h>
 #include <fcntl.h>
-#include <err.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-#include <string.h>
+
+#include "k8temp.h"
 
 #define _PATH_DEVPCI "/dev/pci"
-#define PCI_VENDOR_ID_AMD              0x1022
-#define PCI_DEVICE_ID_AMD_K8_MISC_CTRL 0x1103
 
 int debug = 0;
 int correct = 0;
-
-void check_cpuid(void);
-int get_temp(int fd, struct pcisel dev, int core, int sensor);
-int main(int argc, char *argv[]);
-void usage(int exit_code);
-void version(void);
 
 void usage(int exit_code)
 {
@@ -92,38 +80,6 @@ void version(void)
 	printf("k8temp v%s\nCopyright 2007 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
 	exit(EXIT_SUCCESS);
 }
-
-/*
- * See section 4.6.23, Thermtrip Status Register:
- * http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
- */
-#define THERM_REG   0xe4
-#define SEL_CORE    (1 << 2) /* ThermSenseCoreSel */
-#define SEL_SENSOR  (1 << 6) /* ThermSenseSel */
-#define CURTMP(val)     (((val) >> 16) & 0xff)
-#define TJOFFSET(val)   (((val) >> 24) & 0xf)
-#define DIODEOFFSET(val)   (((val) >> 8) & 0x3f)
-#define THERMTRIP(val)  ((val) & 1)
-
-#define OFFSET_MAX 11
-#define TEMP_MIN -49
-#define TEMP_ERR -255
-
-#define CPUID_EXTENDED 0x80000000
-#define CPUID_POWERMGT 0x80000007
-
-const char *advPwrMgtFlags[] = {
-	"Temperature sensor",
-	"Frequency ID control",
-	"Voltage ID control",
-	"THERMTRIP support",
-	"HW Thermal control",
-	"SW Thermal control",
-	"100MHz multipliers",
-	"HW P-State control",
-	"TSC Invariant",
-	NULL,
-};
 
 void check_cpuid(void)
 {
@@ -234,10 +190,6 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 		return(CURTMP(reg) + TEMP_MIN);
 }
 
-#define MAX_CPU    32
-#define MAX_CORE    2
-#define MAX_SENSOR  2
-
 int main(int argc, char *argv[])
 {
 	struct pci_conf_io pc;
@@ -274,9 +226,9 @@ int main(int argc, char *argv[])
 	{
 		selcount = sscanf(argv[i], "%u:%u:%u", &cpu, &core, &sensor);
 		selected += selcount;
-		if (cpu > MAX_CPU - 1) errx(EXIT_FAILURE, "CPU selector %d out of range 0-%d", cpu, MAX_CPU - 1);
-		if (core > MAX_CORE - 1) errx(EXIT_FAILURE, "Core selector %d out of range 0-%d", cpu, MAX_CORE - 1);
-		if (sensor > MAX_SENSOR - 1) errx(EXIT_FAILURE, "Sensor selector %d out of range 0-%d", cpu, MAX_SENSOR - 1);
+		if (cpu >= MAX_CPU) errx(EXIT_FAILURE, "CPU selector %d out of range 0-%d", cpu, MAX_CPU - 1);
+		if (core >= MAX_CORE) errx(EXIT_FAILURE, "Core selector %d out of range 0-%d", cpu, MAX_CORE - 1);
+		if (sensor >= MAX_SENSOR) errx(EXIT_FAILURE, "Sensor selector %d out of range 0-%d", cpu, MAX_SENSOR - 1);
 		switch (selcount)
 		{
 		case 1:
@@ -328,9 +280,9 @@ int main(int argc, char *argv[])
 		if (debug)
 			fprintf(stderr, "Probe device: %d:%d:%d\n",
 			        p->pc_sel.pc_bus, p->pc_sel.pc_dev, p->pc_sel.pc_func);
-		for (core = 0; core < 2; core++)
+		for (core = 0; core < MAX_CORE; core++)
 		{
-			for (sensor = 0; sensor < 2; sensor++)
+			for (sensor = 0; sensor < MAX_SENSOR; sensor++)
 			{
 				if (selections[cpu][core][sensor])
 				{
