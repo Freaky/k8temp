@@ -79,7 +79,7 @@ void version(void);
 void usage(int exit_code)
 {
 	fprintf((exit_code == EXIT_SUCCESS ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n",
-			"usage: k8temp [-dc | -v | -h]",
+			"usage: k8temp [-dc | -v | -h] [cpu[:core[:sensor]] ...]",
 			"  -v    Display version information",
 			"  -h    Display this help text",
 			"  -d    Dump debugging info",
@@ -234,16 +234,23 @@ int get_temp(int fd, struct pcisel dev, int core, int sensor)
 		return(CURTMP(reg) + TEMP_MIN);
 }
 
+#define MAX_CPU    32
+#define MAX_CORE    2
+#define MAX_SENSOR  2
 
 int main(int argc, char *argv[])
 {
 	struct pci_conf_io pc;
 	struct pci_match_conf pat;
-	struct pci_conf conf[255], *p;
+	struct pci_conf conf[MAX_CPU], *p;
 	int fd;
-	int cpu,core,sensor,temp;
+	unsigned int cpu,core,sensor;
+	int temp;
 	int exit_code = EXIT_FAILURE;
 	int opt;
+	char selections[MAX_CPU][MAX_CORE][MAX_SENSOR];
+
+	bzero(&selections, sizeof(selections));
 
 	while ((opt = getopt(argc, argv, "dvch")) != -1)
 		switch (opt) {
@@ -261,6 +268,34 @@ int main(int argc, char *argv[])
 		default:
 			usage(EXIT_FAILURE);
 		}
+
+	int selcount,selected = 0;
+	for (int i = optind; i < argc; i++)
+	{
+		selcount = sscanf(argv[i], "%u:%u:%u", &cpu, &core, &sensor);
+		selected += selcount;
+		if (cpu > MAX_CPU - 1) errx(EXIT_FAILURE, "CPU selector %d out of range 0-%d", cpu, MAX_CPU - 1);
+		if (core > MAX_CORE - 1) errx(EXIT_FAILURE, "Core selector %d out of range 0-%d", cpu, MAX_CORE - 1);
+		if (sensor > MAX_SENSOR - 1) errx(EXIT_FAILURE, "Sensor selector %d out of range 0-%d", cpu, MAX_SENSOR - 1);
+		switch (selcount)
+		{
+		case 1:
+			memset(selections[cpu], 1, sizeof(selections[cpu]));
+			break;
+		case 2:
+			memset(selections[cpu][core], 1, sizeof(selections[cpu][core]));
+			break;
+		case 3:
+			selections[cpu][core][sensor] = 1;
+			break;
+		case 0:
+		default:
+			warnx("Illegal selector: %s", argv[i]);
+			usage(EXIT_FAILURE);
+		}
+	}
+	if (0 == selected)
+		memset(selections, 1, sizeof(selections));
 
 	check_cpuid();
 
@@ -297,11 +332,14 @@ int main(int argc, char *argv[])
 		{
 			for (sensor = 0; sensor < 2; sensor++)
 			{
-				temp = get_temp(fd, p->pc_sel, core, sensor);
-				if (temp > TEMP_MIN + OFFSET_MAX)
+				if (selections[cpu][core][sensor])
 				{
-					printf("CPU %d Core %d Sensor %d: %dc\n", cpu, core, sensor, temp);
-					exit_code = EXIT_SUCCESS;
+					temp = get_temp(fd, p->pc_sel, core, sensor);
+					if (temp > TEMP_MIN + OFFSET_MAX)
+					{
+						printf("CPU %d Core %d Sensor %d: %dc\n", cpu, core, sensor, temp);
+						exit_code = EXIT_SUCCESS;
+					}
 				}
 			}
 		}
