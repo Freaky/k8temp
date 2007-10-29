@@ -27,7 +27,7 @@
  *
  * DragonFlyBSD should work fine, since it has pretty much the same /dev/pci.
  * OpenBSD should work with -DWITHOUT_PCIOCGETCONF using a kernel with USER_PCI.
- * NetBSD might work with -DWITH_LIBPCI, but it's not even build tested.
+ * NetBSD might work with -DWITH_LIBPCI, but it's only been vaguely built tested.
  */
 
 #ifdef WITH_LIBPCI

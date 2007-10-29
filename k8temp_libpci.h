@@ -13,7 +13,11 @@
 
 #define _PATH_DEVPCI "/dev/pci0"
 
-typedef struct pcidev k8_pcidev;
+typedef struct {
+	char pc_bus;
+	char pc_dev;
+	char pc_func;
+} k8_pcidev;
 
 void k8_pci_init(void);
 void k8_pci_close(void);
