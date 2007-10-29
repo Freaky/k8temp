@@ -11,11 +11,16 @@
 #define PCI_DEVICE_ID_AMD_K8_MISC_CTRL  0x1103
 #define PCI_DEVICE_ID_AMD_K10_MISC_CTRL 0x1203
 
+
+/*
+ * BIOS and Kernel Developer's Guide (BKDG) For AMD Family 10h Processors
+ * http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/31116.pdf
+ *
+ * These aren't used anywhere yet.
+ */
 #define K10_THERM_REG   0xa4
 #define K10_THERMTRIP_REG 0xe4
 #define K10_CURTMP(val)  (((val) >> 21) 0xfff)
-
-
 
 /*
  * See section 4.6.23, Thermtrip Status Register:
