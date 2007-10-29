@@ -16,11 +16,11 @@ CPU 0 Core 0 Sensor 0: 35c
 CPU 0 Core 1 Sensor 0: 36c
 CPU 1 Core 0 Sensor 0: 33c
 CPU 1 Core 1 Sensor 0: 32c
-
-Yes, some AMD64's allegedly have two sensors per core.
-
+-% sudo k8temp -n 0:0:0 1:0:0
+35
+33
 -% sudo k8temp -d
-CPUID: Vendor: AuthenticAMD, Id=0x20f12 Model=2 Family=1 Stepping=15
+CPUID: Vendor: AuthenticAMD, Id=0x20f12 Model=1 Family=15 Stepping=2
 Advanced Power Management=0xf
    Temperature sensor: Yes
  Frequency ID control: Yes
@@ -31,17 +31,16 @@ Advanced Power Management=0xf
    100MHz multipliers: No
    HW P-State control: No
         TSC Invariant: No
-Probe device: 0:24:3
 Thermtrip=0x0d540524 (CurTmp=0x54 (35c) TjOffset=0x0d DiodeOffset=0x05 (6c))
 CPU 0 Core 0 Sensor 0: 35c
 Thermtrip=0x0d560520 (CurTmp=0x56 (37c) TjOffset=0x0d DiodeOffset=0x05 (6c))
 CPU 0 Core 1 Sensor 0: 37c
-Probe device: 0:25:3
-Thermtrip=0x0f520224 (CurTmp=0x52 (33c) TjOffset=0x0f DiodeOffset=0x02 (9c))
-CPU 1 Core 0 Sensor 0: 33c
+Thermtrip=0x0f530224 (CurTmp=0x53 (34c) TjOffset=0x0f DiodeOffset=0x02 (9c))
+CPU 1 Core 0 Sensor 0: 34c
 Thermtrip=0x0f520220 (CurTmp=0x52 (33c) TjOffset=0x0f DiodeOffset=0x02 (9c))
 CPU 1 Core 1 Sensor 0: 33c
 
+Yes, some AMD64's allegedly have two sensors per core.
 
 Installation
 ------------
@@ -56,7 +55,7 @@ If you want to try it on a system without bsd.prog.mk:
 
   cc -o k8temp k8temp.c k8temp_devpci.c
 
-OpenBSD users may want:
+OpenBSD users (who have USER_PCI configured kernels) may want:
 
   cc -DWITHOUT_PCIOCGETCONF -o k8temp k8temp.c k8temp_devpci.c
 
@@ -64,8 +63,7 @@ NetBSD users can try:
 
   cc -DWITH_LIBPCI -o k8temp k8temp.c k8temp_libpci.c
 
-But it almost certainly won't work, since I haven't even compile tested it.
-Feel free to fix it.
+But note this is completely untested.
 
 Let me know if you get it working on systems other than FreeBSD 6/amd64.
 
@@ -84,7 +82,7 @@ BIOS and Kernel Developer's Guide for AMD NPT Family 0fh Processors.
  Section 4.6.23, Thermtrip Status Register.
   http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
 
-(Upcoming)
+(Upcoming, hopefully)
 BIOS and Kernel Developer's Guide (BKDG) For AMD Family 10h Processors
  Section 3.6.F3xA4, Reported Temperature Control Register.
   http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/31116.pdf
