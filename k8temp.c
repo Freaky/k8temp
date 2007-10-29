@@ -24,31 +24,10 @@
 
 /*
  * k8temp -- AMD K8 (AMD64, Opteron) on-die thermal sensor reader for FreeBSD.
- * Should work in DfBSD, since it has pretty much the same /dev/pci
- * OpenBSD feasable with USER_PCICONF support, but I don't see PCIOCGETCONF in pci(4)
- * NetBSD has -lpci, can be supported with a bit of effort.
- * Usage: gcc -o k8temp k8temp.c && sudo ./k8temp
  *
- * Tested on FreeBSD 6-STABLE/amd64 on a dual dual core Opteron 275:
- * CPU 0 Core 0 Sensor 0: 44c
- * CPU 0 Core 1 Sensor 0: 45c
- * CPU 1 Core 0 Sensor 0: 41c
- * CPU 1 Core 1 Sensor 0: 41c
- *
- * 6.1-RELEASE/amd64 on a dual core Opteron 175:
- * CPU 0 Core 0 Sensor 0: 36c
- * CPU 0 Core 1 Sensor 0: 32c
- *
- * 6.2-RELEASE/amd64 on a dual single core Opteron 248:
- * CPU 0 Core 1 Sensor 0: 32c
- * CPU 1 Core 1 Sensor 0: 38c
- * 
- * 6.2-RELEASE/amd64 on a dual dual core Opteron 2216:
- * CPU 0 Core 0 Sensor 0: 46c
- * CPU 0 Core 1 Sensor 0: 46c
- * CPU 1 Core 0 Sensor 0: 38c
- * CPU 1 Core 1 Sensor 0: 38c
- *
+ * DragonFlyBSD should work fine, since it has pretty much the same /dev/pci.
+ * OpenBSD should work with -DWITHOUT_PCIOCGETCONF using a kernel with USER_PCI.
+ * NetBSD might work with -DWITH_LIBPCI, but it's not even build tested.
  */
 
 #ifdef WITH_LIBPCI
@@ -60,7 +39,6 @@
 #include "k8temp.h"
 
 int debug = 0;
-int correct = 0;
 
 void usage(int exit_code)
 {
@@ -68,7 +46,7 @@ void usage(int exit_code)
 			"usage: k8temp [-nd | -v | -h] [cpu[:core[:sensor]] ...]",
 			"  -v    Display version information",
 			"  -h    Display this help text",
-			"  -n    Display number or UNKNOWN only",
+			"  -n    Only display number or UNKNOWN",
 			"  -d    Dump debugging info");
 	exit(exit_code);
 }
@@ -187,9 +165,6 @@ int main(int argc, char *argv[])
 		case 'v':
 			version();
 			exit(EXIT_SUCCESS);
-		case 'c':
-			correct = 1;
-			break;
 		case 'n':
 			value_only = 1;
 			break;
