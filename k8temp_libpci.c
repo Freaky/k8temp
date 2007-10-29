@@ -25,7 +25,7 @@ void k8_pci_close()
 int k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], int maxdev)
 {
 	int matches = -1;
-	u_int8_t dev,func;
+	uint8_t dev,func;
 	int pcireg;
 	k8_pcidev sel;
 	bzero(&sel, sizeof(k8_pcidev));
