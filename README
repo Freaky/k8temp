@@ -6,7 +6,43 @@ Synopsis
 k8temp displays readings from the on-die thermal diodes found in most
 AMD K8 processors, including Athlon 64's and Opterons.
 
-Please see the warning below, and remember to check the manpage.
+
+=======
+WARNING
+=======
+Since this pokes at PCI registers, it has the potential to make your system
+crash, reboot, catch fire, and frame you for conspiracy to murder heads of state.
+
+k8temp has caused at least one of these things to happen during development.
+
+
+Installation
+------------
+If you're on FreeBSD, consider using the port at sysutils/k8temp.
+
+Otherwise, just:
+
+  make
+  make install
+
+The Makefile should detect any flags your OS needs.
+
+If you want to try it on a system without bsd.prog.mk:
+
+  cc -o k8temp k8temp.c k8temp_devpci.c
+
+OpenBSD users (who have USER_PCI configured kernels) may want:
+
+  cc -DWITHOUT_PCIOCGETCONF -o k8temp k8temp.c k8temp_devpci.c
+
+NetBSD users can try:
+
+  cc -DWITH_LIBPCI -o k8temp k8temp.c k8temp_libpci.c
+
+But note this is completely untested.
+
+Let me know if you get it working on systems other than FreeBSD 6/amd64.
+
 
 
 Examples
@@ -42,38 +78,6 @@ CPU 1 Core 1 Sensor 0: 33c
 
 Yes, some AMD64's allegedly have two sensors per core.
 
-Installation
-------------
-Preferably, use the FreeBSD port, sysutils/k8temp.
-
-Otherwise, just:
-
-  make
-  make install
-
-If you want to try it on a system without bsd.prog.mk:
-
-  cc -o k8temp k8temp.c k8temp_devpci.c
-
-OpenBSD users (who have USER_PCI configured kernels) may want:
-
-  cc -DWITHOUT_PCIOCGETCONF -o k8temp k8temp.c k8temp_devpci.c
-
-NetBSD users can try:
-
-  cc -DWITH_LIBPCI -o k8temp k8temp.c k8temp_libpci.c
-
-But note this is completely untested.
-
-Let me know if you get it working on systems other than FreeBSD 6/amd64.
-
-=======
-WARNING
-=======
-Since this pokes at PCI registers, it has the potential to make your system
-crash, reboot, catch fire, and frame you for conspiracy to murder heads of state.
-
-k8temp has caused at least one of these things to happen during development.
 
 
 References
