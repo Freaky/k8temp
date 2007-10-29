@@ -26,7 +26,7 @@
 .Nd "display on-die temperature readings from AMD K8 processors"
 .Sh SYNOPSIS
 .Nm
-.Op Fl ndc Ar [selector ...]
+.Op Fl nd Ar [selector ...]
 .Op Fl v
 .Op Fl h
 .Sh DESCRIPTION
@@ -49,8 +49,6 @@ Show only temperature values, including UNKNOWN for skipped values.
 .It Fl d
 Display debug information, including raw register contents and interpreted subvalues, and
 an Advanced Power Management feature dump.
-.It Fl c
-Apply diode offset correction based on DiodeOffset register bits (not recommended)
 .El
 .Pp
 Selectors specify which CPU, core and sensor to read, and are of the form
@@ -70,7 +68,7 @@ may cause unsupported systems to reboot, crash or explode.
 .Pp
 Core numbers on single core systems may be incorrect.
 .Pp
-Returned values may be wildly incorrect, even, or especially when offset correction is applied.
+Returned values may be wildly incorrect due to lack of diode calibration.  There's currently no support for this.
 .Sh HISTORY
 .Bl -tag -width indent
 .It 0.1.0, 2007-10-21
@@ -79,6 +77,9 @@ First release.
 Fixes a serious error resulting in writes to a bogus PCI register.
 .It 0.2.0, 2007-10-25
 Add support for diode offset correction and debugging options.  Add CPUID check.
+.It 0.3.0, 2007-??-??
+Add tenative support for OpenBSD and NetBSD.  Remove (meaningless) diode offset correction.
+Introduce value-only output mode and sensor selector arguments.
 .El
 .Sh SEE ALSO
 BIOS and Kernel Developer's Guide for AMD NPT Family 0fh Processors.

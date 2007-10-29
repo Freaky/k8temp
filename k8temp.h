@@ -7,8 +7,15 @@
 #include <strings.h>
 #include <string.h>
 
-#define PCI_VENDOR_ID_AMD              0x1022
-#define PCI_DEVICE_ID_AMD_K8_MISC_CTRL 0x1103
+#define PCI_VENDOR_ID_AMD               0x1022
+#define PCI_DEVICE_ID_AMD_K8_MISC_CTRL  0x1103
+#define PCI_DEVICE_ID_AMD_K10_MISC_CTRL 0x1203
+
+#define K10_THERM_REG   0xa4
+#define K10_THERMTRIP_REG 0xe4
+#define K10_CURTMP(val)  (((val) >> 21) 0xfff)
+
+
 
 /*
  * See section 4.6.23, Thermtrip Status Register:
@@ -34,7 +41,7 @@
 #define CPUID_POWERMGT 0x80000007
 
 void check_cpuid(void);
-int get_temp(k8_pcidev_t dev, int core, int sensor);
+int get_temp(k8_pcidev dev, int core, int sensor);
 int main(int argc, char *argv[]);
 void usage(int exit_code);
 void version(void);

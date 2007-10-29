@@ -17,12 +17,6 @@ CPU 0 Core 1 Sensor 0: 36c
 CPU 1 Core 0 Sensor 0: 33c
 CPU 1 Core 1 Sensor 0: 32c
 
--% sudo k8temp -c
-CPU 0 Core 0 Sensor 0: 40c
-CPU 0 Core 1 Sensor 0: 42c
-CPU 1 Core 0 Sensor 0: 43c
-CPU 1 Core 1 Sensor 0: 42c
-
 Yes, some AMD64's allegedly have two sensors per core.
 
 -% sudo k8temp -d
@@ -89,6 +83,11 @@ References
 BIOS and Kernel Developer's Guide for AMD NPT Family 0fh Processors.
  Section 4.6.23, Thermtrip Status Register.
   http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
+
+(Upcoming)
+BIOS and Kernel Developer's Guide (BKDG) For AMD Family 10h Processors
+ Section 3.6.F3xA4, Reported Temperature Control Register.
+  http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/31116.pdf
 
 AMD CPUID Specification, revision 2.26.
   http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/25481.pdf

@@ -1,9 +1,4 @@
-/*
- * k8temp -- AMD K8 (AMD64, Opteron) on-die thermal sensor reader for FreeBSD.
- * Should work in DfBSD, since it has pretty much the same /dev/pci
- * OpenBSD feasable with USER_PCICONF support, but I don't see PCIOCGETCONF in pci(4)
- * NetBSD has -lpci, can be supported with a bit of effort.
- *
+/*-
  * Copyright (c) 2007 Thomas Hurst <tom@hur.st>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,6 +23,10 @@
 #define K8TEMP_VERSION "0.3.0pre1"
 
 /*
+ * k8temp -- AMD K8 (AMD64, Opteron) on-die thermal sensor reader for FreeBSD.
+ * Should work in DfBSD, since it has pretty much the same /dev/pci
+ * OpenBSD feasable with USER_PCICONF support, but I don't see PCIOCGETCONF in pci(4)
+ * NetBSD has -lpci, can be supported with a bit of effort.
  * Usage: gcc -o k8temp k8temp.c && sudo ./k8temp
  *
  * Tested on FreeBSD 6-STABLE/amd64 on a dual dual core Opteron 275:
@@ -65,13 +64,12 @@ int correct = 0;
 
 void usage(int exit_code)
 {
-	fprintf((exit_code == EXIT_SUCCESS ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n%s\n",
-			"usage: k8temp [-ndc | -v | -h] [cpu[:core[:sensor]] ...]",
+	fprintf((exit_code == EXIT_SUCCESS ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n",
+			"usage: k8temp [-nd | -v | -h] [cpu[:core[:sensor]] ...]",
 			"  -v    Display version information",
 			"  -h    Display this help text",
 			"  -n    Display number or UNKNOWN only",
-			"  -d    Dump debugging info",
-			"  -c    Apply diode offset correction (not recommended)");
+			"  -d    Dump debugging info");
 	exit(exit_code);
 }
 
@@ -125,7 +123,7 @@ void check_cpuid(void)
 		errx(EXIT_FAILURE, "This CPU stepping does not support thermal sensors.");
 }
 
-int get_temp(k8_pcidev_t dev, int core, int sensor)
+int get_temp(k8_pcidev dev, int core, int sensor)
 {
 	static int thermtp = 0;
 	unsigned int ctrl,therm;
@@ -166,15 +164,12 @@ int get_temp(k8_pcidev_t dev, int core, int sensor)
 		        therm, CURTMP(therm), CURTMP(therm) + TEMP_MIN, TJOFFSET(therm),
 		        DIODEOFFSET(therm), OFFSET_MAX - DIODEOFFSET(therm));
 
-	if (correct && DIODEOFFSET(therm) > 0)
-		return((CURTMP(therm) + TEMP_MIN) + (OFFSET_MAX - DIODEOFFSET(therm)));
-	else
-		return(CURTMP(therm) + TEMP_MIN);
+	return(CURTMP(therm) + TEMP_MIN);
 }
 
 int main(int argc, char *argv[])
 {
-	k8_pcidev_t devs[MAX_CPU];
+	k8_pcidev devs[MAX_CPU];
 	unsigned int cpucount,cpu,core,sensor;
 	int temp;
 	int exit_code = EXIT_FAILURE;
@@ -246,7 +241,7 @@ int main(int argc, char *argv[])
 					continue;
 
 				temp = get_temp(devs[cpu], core, sensor);
-				if (temp > TEMP_MIN + OFFSET_MAX)
+				if (temp > TEMP_MIN)
 				{
 					if (value_only)
 						printf("%d\n", temp);
