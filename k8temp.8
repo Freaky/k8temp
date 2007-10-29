@@ -67,8 +67,6 @@ Display reading for CPU 0 and CPU2, all available cores and sensors.  Display de
 may cause unsupported systems to reboot, crash or explode.
 .Pp
 Core numbers on single core systems may be incorrect.
-.Pp
-Returned values may be wildly incorrect due to lack of diode calibration.  There's currently no support for this.
 .Sh HISTORY
 .Bl -tag -width indent
 .It 0.1.0, 2007-10-21
@@ -77,7 +75,7 @@ First release.
 Fixes a serious error resulting in writes to a bogus PCI register.
 .It 0.2.0, 2007-10-25
 Add support for diode offset correction and debugging options.  Add CPUID check.
-.It 0.3.0, 2007-??-??
+.It 0.3.0, 2007-10-??
 Add tenative support for OpenBSD and NetBSD.  Remove (meaningless) diode offset correction.
 Introduce value-only output mode and sensor selector arguments.
 .El
