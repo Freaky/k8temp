@@ -40,7 +40,8 @@
 
 int debug = 0;
 
-void usage(int exit_code)
+void
+usage(int exit_code)
 {
 	fprintf((exit_code == EXIT_SUCCESS ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n",
 			"usage: k8temp [-nd | -v | -h] [cpu[:core[:sensor]] ...]",
@@ -51,13 +52,15 @@ void usage(int exit_code)
 	exit(exit_code);
 }
 
-void version(void)
+void
+version(void)
 {
 	printf("k8temp v%s\nCopyright 2007 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
 	exit(EXIT_SUCCESS);
 }
 
-void check_cpuid(void)
+void
+check_cpuid(void)
 {
 	unsigned int vendor[3];
 	unsigned int maxeid,cpuid,pwrmgt,unused;
@@ -101,7 +104,8 @@ void check_cpuid(void)
 		errx(EXIT_FAILURE, "This CPU stepping does not support thermal sensors.");
 }
 
-int get_temp(k8_pcidev dev, int core, int sensor)
+int
+get_temp(k8_pcidev dev, int core, int sensor)
 {
 	static int thermtp = 0;
 	unsigned int ctrl,therm;
@@ -145,7 +149,8 @@ int get_temp(k8_pcidev dev, int core, int sensor)
 	return(CURTMP(therm) + TEMP_MIN);
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	k8_pcidev devs[MAX_CPU];
 	unsigned int cpucount,cpu,core,sensor;

@@ -17,20 +17,22 @@
 
 int fd;
 
-void k8_pci_init()
+void
+k8_pci_init()
 {
-	fd = open(_PATH_DEVPCI, O_RDWR, 0);
-
-	if (fd < 0)
+	if ((fd = open(_PATH_DEVPCI, O_RDWR, 0))  < 0)
 		err(EXIT_FAILURE, "open(\"%s\")", _PATH_DEVPCI);
 }
 
-void k8_pci_close()
+void
+k8_pci_close()
 {
-	if (fd) close(fd);
+	if (fd)
+		close(fd);
 }
 
-int k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], int maxdev)
+int
+k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], int maxdev)
 {
 	int matches = -1;
 #ifndef WITHOUT_PCIOCGETCONF
@@ -52,7 +54,10 @@ int k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], in
 	pc.matches = conf;
 
 	if (ioctl(fd, PCIOCGETCONF, &pc) == -1 || pc.status == PCI_GETCONF_ERROR)
+	{
+		warn("ioctl(PCIOCGETCONF) failed");
 		return(-1);
+	}
 
 	for (p = conf; p < &conf[pc.num_matches]; p++)
 	{
@@ -87,7 +92,8 @@ int k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], in
 	return(matches);
 }
 
-int k8_pci_read(k8_pcidev dev, int offset, int *data, int width)
+int
+k8_pci_read(k8_pcidev dev, int offset, int *data, int width)
 {
 	struct pci_io ctrl;
 	bzero(&ctrl, sizeof(ctrl));
@@ -106,17 +112,20 @@ int k8_pci_read(k8_pcidev dev, int offset, int *data, int width)
 	return(width);
 }
 
-int k8_pci_read_byte(k8_pcidev dev, int offset, int *data)
+int
+k8_pci_read_byte(k8_pcidev dev, int offset, int *data)
 {
 	return(k8_pci_read(dev, offset, data, 1));
 }
 
-int k8_pci_read_word(k8_pcidev dev, int offset, int *data)
+int
+k8_pci_read_word(k8_pcidev dev, int offset, int *data)
 {
 	return(k8_pci_read(dev, offset, data, 4));
 }
 
-int k8_pci_write(k8_pcidev dev, int offset, int data, int width)
+int
+k8_pci_write(k8_pcidev dev, int offset, int data, int width)
 {
 	struct pci_io ctrl;
 	bzero(&ctrl, sizeof(ctrl));
@@ -135,12 +144,14 @@ int k8_pci_write(k8_pcidev dev, int offset, int data, int width)
 	return(width);
 }
 
-int k8_pci_write_byte(k8_pcidev dev, int offset, int data)
+int
+k8_pci_write_byte(k8_pcidev dev, int offset, int data)
 {
 	return(k8_pci_write(dev, offset, data, 1));
 }
 
-int k8_pci_write_word(k8_pcidev dev, int offset, int data)
+int
+k8_pci_write_word(k8_pcidev dev, int offset, int data)
 {
 	return(k8_pci_write(dev, offset, data, 4));
 }

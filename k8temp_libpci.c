@@ -9,7 +9,8 @@
 
 int fd;
 
-void k8_pci_init()
+void
+k8_pci_init()
 {
 	fd = open(_PATH_DEVPCI, O_RDWR, 0);
 
@@ -17,12 +18,14 @@ void k8_pci_init()
 		err(EXIT_FAILURE, "open(\"%s\")", _PATH_DEVPCI);
 }
 
-void k8_pci_close()
+void
+k8_pci_close()
 {
 	if (fd) close(fd);
 }
 
-int k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], int maxdev)
+int
+k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], int maxdev)
 {
 	int matches = -1;
 	uint8_t dev,func;
@@ -48,7 +51,8 @@ int k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], in
 	return(matches);
 }
 
-int k8_pci_read(k8_pcidev dev, int offset, int *data, int width)
+int
+k8_pci_read(k8_pcidev dev, int offset, int *data, int width)
 {
 	if (pcibus_conf_read(fd, dev.pc_bus, dev.pc_dev, dev.pc_func, offset, (uint32_t *)&data) < 0)
 	{
@@ -69,19 +73,22 @@ int k8_pci_read(k8_pcidev dev, int offset, int *data, int width)
 	return(width);
 }
 
-int k8_pci_read_byte(k8_pcidev dev, int offset, int *data)
+int
+k8_pci_read_byte(k8_pcidev dev, int offset, int *data)
 {
 	return(k8_pci_read(dev, offset, data, 1));
 }
 
-int k8_pci_read_word(k8_pcidev dev, int offset, int *data)
+int
+k8_pci_read_word(k8_pcidev dev, int offset, int *data)
 {
 	return(k8_pci_read(dev, offset, data, 4));
 }
 
-int k8_pci_write(k8_pcidev dev, int offset, int data, int width)
+int
+k8_pci_write(k8_pcidev dev, int offset, int data, int width)
 {
-	/* XXX: Note, libpci doesn't support <4 byte writes.
+	/* XXX: Note, libpci doesn't support !4 byte writes.
 	 * Luckily the upper 24 bits of Thermtrip is read-only, so it doesn't
 	 * matter, but we should take care if we end up writing anywhere else.
 	 */
@@ -91,15 +98,17 @@ int k8_pci_write(k8_pcidev dev, int offset, int data, int width)
 		return(0);
 	}
 
-	return(width);
+	return(4);
 }
 
-int k8_pci_write_byte(k8_pcidev dev, int offset, int data)
+int
+k8_pci_write_byte(k8_pcidev dev, int offset, int data)
 {
 	return(k8_pci_write(dev, offset, data, 1));
 }
 
-int k8_pci_write_word(k8_pcidev dev, int offset, int data)
+int
+k8_pci_write_word(k8_pcidev dev, int offset, int data)
 {
 	return(k8_pci_write(dev, offset, data, 4));
 }
