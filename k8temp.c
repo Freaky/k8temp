@@ -30,10 +30,18 @@
  * NetBSD might work with -DWITH_LIBPCI, but it's only been vaguely built tested.
  */
 
+#include <err.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sysexits.h>
+#include <unistd.h>
+
 #ifdef WITH_LIBPCI
-# include "k8temp_libpci.h"
+#include "k8temp_libpci.h"
 #else
-# include "k8temp_devpci.h"
+#include "k8temp_devpci.h"
 #endif
 
 #include "k8temp.h"
@@ -43,12 +51,12 @@ int debug = 0;
 void
 usage(int exit_code)
 {
-	fprintf((exit_code == EXIT_SUCCESS ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n",
-			"usage: k8temp [-nd | -v | -h] [cpu[:core[:sensor]] ...]",
-			"  -v    Display version information",
-			"  -h    Display this help text",
-			"  -n    Only display number or UNKNOWN",
-			"  -d    Dump debugging info");
+	fprintf((exit_code == EX_OK ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n",
+	        "usage: k8temp [-nd | -v | -h] [cpu[:core[:sensor]] ...]",
+	        "  -d    Dump debugging info",
+	        "  -h    Display this help text",
+	        "  -n    Only display number or UNKNOWN",
+	        "  -v    Display version information");
 	exit(exit_code);
 }
 
@@ -56,7 +64,7 @@ void
 version(void)
 {
 	printf("k8temp v%s\nCopyright 2007 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
-	exit(EXIT_SUCCESS);
+	exit(EX_OK);
 }
 
 void
@@ -74,7 +82,7 @@ check_cpuid(void)
 		        (char *)vendor, cpuid, (cpuid >> 4) & 0xf, (cpuid >> 8) & 0xf, cpuid & 0xf);
 
 	if (0 != memcmp((char *)&vendor, "AuthenticAMD", 12))
-		errx(EXIT_FAILURE, "Only AMD CPU's are supported by k8temp");
+		errx(EX_UNAVAILABLE, "Only AMD CPU's are supported by k8temp");
 
 	asm("cpuid": "=a" (maxeid), "=b" (unused), "=c" (unused), "=d" (unused) : "a" (CPUID_EXTENDED));
 
@@ -94,14 +102,14 @@ check_cpuid(void)
 			while (advPwrMgtFlags[++i]);
 		}
 		if (!(pwrmgt & 1))
-			errx(EXIT_FAILURE, "Thermal sensor support not reported in CPUID");
+			errx(EX_UNAVAILABLE, "Thermal sensor support not reported in CPUID");
 	}
 	else
-		errx(EXIT_FAILURE, "CPU lacks Advanced Power Management support");
+		errx(EX_UNAVAILABLE, "CPU lacks Advanced Power Management support");
 
 	/* Linux only checks these 3 */
 	if (cpuid == 0xf40 || cpuid == 0xf50 || cpuid == 0xf51)
-		errx(EXIT_FAILURE, "This CPU stepping does not support thermal sensors.");
+		errx(EX_UNAVAILABLE, "This CPU stepping does not support thermal sensors.");
 }
 
 int
@@ -155,7 +163,7 @@ main(int argc, char *argv[])
 	k8_pcidev devs[MAX_CPU];
 	unsigned int cpucount,cpu,core,sensor;
 	int temp;
-	int exit_code = EXIT_FAILURE;
+	int exit_code = EX_UNAVAILABLE;
 	int opt;
 	int value_only = 0;
 	int i;
@@ -169,14 +177,14 @@ main(int argc, char *argv[])
 			break;
 		case 'v':
 			version();
-			exit(EXIT_SUCCESS);
+			exit(EX_OK);
 		case 'n':
 			value_only = 1;
 			break;
 		case 'h':
-			usage(EXIT_SUCCESS);
+			usage(EX_OK);
 		default:
-			usage(EXIT_FAILURE);
+			usage(EX_USAGE);
 		}
 
 	bzero(&selections, sizeof(selections));
@@ -184,9 +192,12 @@ main(int argc, char *argv[])
 	{
 		selcount = sscanf(argv[i], "%u:%u:%u", &cpu, &core, &sensor);
 		selected += selcount;
-		if (cpu >= MAX_CPU) errx(EXIT_FAILURE, "CPU selector %d out of range 0-%d", cpu, MAX_CPU - 1);
-		if (core >= MAX_CORE) errx(EXIT_FAILURE, "Core selector %d out of range 0-%d", cpu, MAX_CORE - 1);
-		if (sensor >= MAX_SENSOR) errx(EXIT_FAILURE, "Sensor selector %d out of range 0-%d", cpu, MAX_SENSOR - 1);
+		if (cpu >= MAX_CPU)
+			errx(EX_USAGE, "CPU selector %d out of range 0-%d", cpu, MAX_CPU - 1);
+		if (core >= MAX_CORE)
+			errx(EX_USAGE, "Core selector %d out of range 0-%d", cpu, MAX_CORE - 1);
+		if (sensor >= MAX_SENSOR)
+			errx(EX_USAGE, "Sensor selector %d out of range 0-%d", cpu, MAX_SENSOR - 1);
 		switch (selcount)
 		{
 		case 1:
@@ -201,7 +212,7 @@ main(int argc, char *argv[])
 		case 0:
 		default:
 			warnx("Illegal selector: %s", argv[i]);
-			usage(EXIT_FAILURE);
+			usage(EX_USAGE);
 		}
 	}
 
@@ -227,7 +238,7 @@ main(int argc, char *argv[])
 						printf("%d\n", temp);
 					else
 						printf("CPU %d Core %d Sensor %d: %dc\n", cpu, core, sensor, temp);
-					exit_code = EXIT_SUCCESS;
+					exit_code = EX_OK;
 				}
 				else if (value_only)
 				{

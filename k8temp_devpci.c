@@ -13,6 +13,8 @@
  * No idea about Solaris.
  */
 
+#include <sysexits.h>
+
 #include "k8temp_devpci.h"
 
 int fd;
@@ -21,14 +23,13 @@ void
 k8_pci_init()
 {
 	if ((fd = open(_PATH_DEVPCI, O_RDWR, 0))  < 0)
-		err(EXIT_FAILURE, "open(\"%s\")", _PATH_DEVPCI);
+		err(EX_OSFILE, "open(\"%s\")", _PATH_DEVPCI);
 }
 
 void
 k8_pci_close()
 {
-	if (fd)
-		close(fd);
+	if (fd) close(fd);
 }
 
 int

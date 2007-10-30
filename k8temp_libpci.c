@@ -5,6 +5,8 @@
  * Untested, unfinished. Beware of dog.
  */
 
+#include <sysexits.h>
+
 #include "k8temp_libpci.h"
 
 int fd;
@@ -12,10 +14,8 @@ int fd;
 void
 k8_pci_init()
 {
-	fd = open(_PATH_DEVPCI, O_RDWR, 0);
-
-	if (fd < 0)
-		err(EXIT_FAILURE, "open(\"%s\")", _PATH_DEVPCI);
+	if ((fd = open(_PATH_DEVPCI, O_RDWR, 0))  < 0)
+		err(EX_OSFILE, "open(\"%s\")", _PATH_DEVPCI);
 }
 
 void
