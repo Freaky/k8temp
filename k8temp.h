@@ -1,11 +1,11 @@
 
 #ifndef _K8TEMP_H_
 #include <err.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
 #include <string.h>
+#include <strings.h>
+#include <unistd.h>
 
 #define PCI_VENDOR_ID_AMD               0x1022
 #define PCI_DEVICE_ID_AMD_K8_MISC_CTRL  0x1103
