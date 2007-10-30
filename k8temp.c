@@ -170,17 +170,16 @@ main(int argc, char *argv[])
 	char selections[MAX_CPU][MAX_CORE][MAX_SENSOR];
 	int selcount,selected = 0;
 
-	while ((opt = getopt(argc, argv, "dvchn")) != -1)
+	while ((opt = getopt(argc, argv, "dhnv")) != -1)
 		switch (opt) {
 		case 'd':
 			debug = 1;
 			break;
-		case 'v':
-			version();
-			exit(EX_OK);
 		case 'n':
 			value_only = 1;
 			break;
+		case 'v':
+			version();
 		case 'h':
 			usage(EX_OK);
 		default:
@@ -192,11 +191,11 @@ main(int argc, char *argv[])
 	{
 		selcount = sscanf(argv[i], "%u:%u:%u", &cpu, &core, &sensor);
 		selected += selcount;
-		if (cpu >= MAX_CPU)
+		if (selcount > 0 && cpu >= MAX_CPU)
 			errx(EX_USAGE, "CPU selector %d out of range 0-%d", cpu, MAX_CPU - 1);
-		if (core >= MAX_CORE)
+		if (selcount > 1 && core >= MAX_CORE)
 			errx(EX_USAGE, "Core selector %d out of range 0-%d", cpu, MAX_CORE - 1);
-		if (sensor >= MAX_SENSOR)
+		if (selcount > 2 && sensor >= MAX_SENSOR)
 			errx(EX_USAGE, "Sensor selector %d out of range 0-%d", cpu, MAX_SENSOR - 1);
 		switch (selcount)
 		{
