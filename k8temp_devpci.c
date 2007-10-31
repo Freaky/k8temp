@@ -68,7 +68,7 @@ k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], int ma
 #else
 	/* should work with OpenBSD's USER_PCI */
 	uint8_t dev,func;
-	int pcireg;
+	uint32_t pcireg;
 	k8_pcidev sel;
 	bzero(&sel, sizeof(k8_pcidev));
 	sel.pc_bus = 0;
