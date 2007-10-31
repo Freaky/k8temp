@@ -17,7 +17,7 @@
 
 #include "k8temp_devpci.h"
 
-int fd;
+static int fd;
 
 void
 k8_pci_init()

@@ -5,7 +5,6 @@
 #define PCI_DEVICE_ID_AMD_K8_MISC_CTRL  0x1103
 #define PCI_DEVICE_ID_AMD_K10_MISC_CTRL 0x1203
 
-
 /*
  * BIOS and Kernel Developer's Guide (BKDG) For AMD Family 10h Processors
  * http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/31116.pdf
@@ -39,11 +38,11 @@
 #define CPUID_EXTENDED 0x80000000
 #define CPUID_POWERMGT 0x80000007
 
-void check_cpuid(void);
-int get_temp(k8_pcidev dev, int core, int sensor);
+static void check_cpuid(void);
+static int get_temp(k8_pcidev dev, int core, int sensor);
+static void usage(int exit_code);
+static void version(void);
 int main(int argc, char *argv[]);
-void usage(int exit_code);
-void version(void);
 
 const char *advPwrMgtFlags[] = {
 	"Temperature sensor",

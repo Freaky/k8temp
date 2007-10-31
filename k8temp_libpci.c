@@ -9,7 +9,7 @@
 
 #include "k8temp_libpci.h"
 
-int fd;
+static int fd;
 
 void
 k8_pci_init()

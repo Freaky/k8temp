@@ -46,12 +46,13 @@
 
 #include "k8temp.h"
 
-int debug = 0;
+static int debug = 0;
 
-void
+static void
 usage(int exit_code)
 {
-	fprintf((exit_code == EX_OK ? stdout : stderr), "%s\n%s\n%s\n%s\n%s\n",
+	fprintf((exit_code == EX_OK ? stdout : stderr),
+	        "%s\n%s\n%s\n%s\n%s\n",
 	        "usage: k8temp [-nd | -v | -h] [cpu[:core[:sensor]] ...]",
 	        "  -d    Dump debugging info",
 	        "  -h    Display this help text",
@@ -60,14 +61,14 @@ usage(int exit_code)
 	exit(exit_code);
 }
 
-void
+static void
 version(void)
 {
 	printf("k8temp v%s\nCopyright 2007 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
 	exit(EX_OK);
 }
 
-void
+static void
 check_cpuid(void)
 {
 	unsigned int vendor[3];
@@ -112,7 +113,7 @@ check_cpuid(void)
 		errx(EX_UNAVAILABLE, "This CPU stepping does not support thermal sensors.");
 }
 
-int
+static int
 get_temp(k8_pcidev dev, int core, int sensor)
 {
 	static int thermtp = 0;
