@@ -27,7 +27,7 @@
  *
  * DragonFlyBSD should work fine, since it has pretty much the same /dev/pci.
  * OpenBSD should work with -DWITHOUT_PCIOCGETCONF using a kernel with USER_PCI.
- * NetBSD might work with -DWITH_LIBPCI, but it's only been vaguely built tested.
+ * NetBSD might work with -DWITH_LIBPCI, but it's only been vaguely build tested.
  */
 
 #include <err.h>
@@ -53,7 +53,7 @@ usage(int exit_code)
 {
 	fprintf((exit_code == EX_OK ? stdout : stderr),
 	        "%s\n%s\n%s\n%s\n%s\n",
-	        "usage: k8temp [-nd | -v | -h] [cpu[:core[:sensor]] ...]",
+	        "usage: k8temp [-nd] [cpu[:core[:sensor]] ...] | [-v | -h]",
 	        "  -d    Dump debugging info",
 	        "  -h    Display this help text",
 	        "  -n    Only display number or UNKNOWN",
