@@ -117,7 +117,7 @@ static int
 get_temp(k8_pcidev dev, int core, int sensor)
 {
 	static int thermtp = 0;
-	unsigned int ctrl,therm;
+	uint32_t ctrl,therm;
 
 	if (!k8_pci_read_byte(dev, THERM_REG, &ctrl))
 		return(TEMP_ERR);

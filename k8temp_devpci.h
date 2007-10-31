@@ -22,12 +22,12 @@ void k8_pci_close(void);
 
 int k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], int max_dev);
 
-int k8_pci_read(k8_pcidev dev, int offset, int *data, int width);
-int k8_pci_read_byte(k8_pcidev dev, int offset, int *data);
-int k8_pci_read_word(k8_pcidev dev, int offset, int *data);
+int k8_pci_read(k8_pcidev dev, int offset, uint32_t *data, int width);
+int k8_pci_read_byte(k8_pcidev dev, int offset, uint32_t *data);
+int k8_pci_read_word(k8_pcidev dev, int offset, uint32_t *data);
 
-int k8_pci_write(k8_pcidev dev, int offset, int data, int width);
-int k8_pci_write_byte(k8_pcidev dev, int offset, int data);
-int k8_pci_write_word(k8_pcidev dev, int offset, int data);
+int k8_pci_write(k8_pcidev dev, int offset, uint32_t data, int width);
+int k8_pci_write_byte(k8_pcidev dev, int offset, uint32_t data);
+int k8_pci_write_word(k8_pcidev dev, int offset, uint32_t data);
 
 #endif

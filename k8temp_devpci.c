@@ -67,7 +67,7 @@ k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], int ma
 	}
 #else
 	/* should work with OpenBSD's USER_PCI */
-	u_int8_t dev,func;
+	uint8_t dev,func;
 	int pcireg;
 	k8_pcidev sel;
 	bzero(&sel, sizeof(k8_pcidev));
@@ -94,7 +94,7 @@ k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], int ma
 }
 
 int
-k8_pci_read(k8_pcidev dev, int offset, int *data, int width)
+k8_pci_read(k8_pcidev dev, int offset, uint32_t *data, int width)
 {
 	struct pci_io ctrl;
 	bzero(&ctrl, sizeof(ctrl));
@@ -114,19 +114,19 @@ k8_pci_read(k8_pcidev dev, int offset, int *data, int width)
 }
 
 int
-k8_pci_read_byte(k8_pcidev dev, int offset, int *data)
+k8_pci_read_byte(k8_pcidev dev, int offset, uint32_t *data)
 {
 	return(k8_pci_read(dev, offset, data, 1));
 }
 
 int
-k8_pci_read_word(k8_pcidev dev, int offset, int *data)
+k8_pci_read_word(k8_pcidev dev, int offset, uint32_t *data)
 {
 	return(k8_pci_read(dev, offset, data, 4));
 }
 
 int
-k8_pci_write(k8_pcidev dev, int offset, int data, int width)
+k8_pci_write(k8_pcidev dev, int offset, uint32_t data, int width)
 {
 	struct pci_io ctrl;
 	bzero(&ctrl, sizeof(ctrl));
@@ -146,13 +146,13 @@ k8_pci_write(k8_pcidev dev, int offset, int data, int width)
 }
 
 int
-k8_pci_write_byte(k8_pcidev dev, int offset, int data)
+k8_pci_write_byte(k8_pcidev dev, int offset, uint32_t data)
 {
 	return(k8_pci_write(dev, offset, data, 1));
 }
 
 int
-k8_pci_write_word(k8_pcidev dev, int offset, int data)
+k8_pci_write_word(k8_pcidev dev, int offset, uint32_t data)
 {
 	return(k8_pci_write(dev, offset, data, 4));
 }
