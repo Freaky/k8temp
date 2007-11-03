@@ -82,7 +82,7 @@ check_cpuid(void)
 		fprintf(stderr, "CPUID: Vendor: %.12s, Id=0x%x Model=%d Family=%d Stepping=%d\n",
 		        (char *)vendor, cpuid, (cpuid >> 4) & 0xf, (cpuid >> 8) & 0xf, cpuid & 0xf);
 
-	if (0 != memcmp((char *)&vendor, "AuthenticAMD", 12))
+	if (0 != memcmp((char *)&vendor, "AuthenticAMD", (size_t) 12))
 		errx(EX_UNAVAILABLE, "Only AMD CPU's are supported by k8temp");
 
 	asm("cpuid": "=a" (maxeid), "=b" (unused), "=c" (unused), "=d" (unused) : "a" (CPUID_EXTENDED));
