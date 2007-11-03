@@ -11,9 +11,9 @@
  *
  * These aren't used anywhere yet.
  */
-#define K10_THERM_REG   0xa4
-#define K10_THERMTRIP_REG 0xe4
-#define K10_CURTMP(val)  (((val) >> 21) 0xfff)
+#define K10_THERM_REG      0xa4
+#define K10_THERMTRIP_REG  0xe4
+#define K10_CURTMP(val)    (((val) >> 21) 0xfff)
 
 /*
  * See section 4.6.23, Thermtrip Status Register:
@@ -22,17 +22,17 @@
 #define THERM_REG   0xe4
 #define SEL_CORE    (1 << 2) /* ThermSenseCoreSel */
 #define SEL_SENSOR  (1 << 6) /* ThermSenseSel */
-#define CURTMP(val)     (((val) >> 16) & 0xff)
-#define TJOFFSET(val)   (((val) >> 24) & 0xf)
-#define DIODEOFFSET(val)   (((val) >> 8) & 0x3f)
-#define THERMTRIP(val)  ((val) & 1)
+#define CURTMP(val)      (((val) >> 16) & 0xff)
+#define TJOFFSET(val)    (((val) >> 24) & 0xf)
+#define DIODEOFFSET(val) (((val) >> 8) & 0x3f)
+#define THERMTRIP(val)   ((val) & 1)
 
 #define MAX_CPU    32
 #define MAX_CORE    2
 #define MAX_SENSOR  2
 
 #define OFFSET_MAX 11
-#define TEMP_MIN -49
+#define TEMP_MIN  -49
 #define TEMP_ERR -255
 
 #define CPUID_EXTENDED 0x80000000
