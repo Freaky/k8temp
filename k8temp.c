@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#define K8TEMP_VERSION "0.3.0pre2"
+#define K8TEMP_VERSION "0.3.0pre6"
 
 /*
  * k8temp -- AMD K8 (AMD64, Opteron) on-die thermal sensor reader for FreeBSD.

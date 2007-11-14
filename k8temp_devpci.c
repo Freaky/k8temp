@@ -33,7 +33,7 @@ k8_pci_close()
 }
 
 int
-k8_pci_vendor_device_list(int vendor_id, int device_id, k8_pcidev devs[], int maxdev)
+k8_pci_vendor_device_list(uint32_t vendor_id, uint32_t device_id, k8_pcidev devs[], int maxdev)
 {
 	int matches = -1;
 #ifndef WITHOUT_PCIOCGETCONF
