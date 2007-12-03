@@ -16,6 +16,7 @@
 #include <sysexits.h>
 
 #include "k8temp_devpci.h"
+#include "k8temp_pci.h"
 
 static int fd;
 
