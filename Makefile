@@ -15,7 +15,7 @@ PROG= k8temp
 
 SRCS= k8temp.c
 
-.if ${OPSYS} == "NetBSD" ||  defined(WITH_LIBPCI)
+.if ${OPSYS} == "NetBSD" || defined(WITH_LIBPCI)
 SRCS+= k8temp_libpci.c
 CFLAGS+= -DWITH_LIBPCI
 .else
