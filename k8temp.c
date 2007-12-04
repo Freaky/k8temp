@@ -38,12 +38,7 @@
 #include <sysexits.h>
 #include <unistd.h>
 
-#ifdef WITH_LIBPCI
-#include "k8temp_libpci.h"
-#else
-#include "k8temp_devpci.h"
-#endif
-
+#include "k8temp_pci.h"
 #include "k8temp.h"
 
 static int debug = 0;

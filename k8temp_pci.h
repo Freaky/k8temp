@@ -1,4 +1,10 @@
 
+#ifdef WITH_LIBPCI
+#include "k8temp_libpci.h"
+#else
+#include "k8temp_devpci.h"
+#endif
+
 /* PCI access functions */
 void k8_pci_init(void);
 void k8_pci_close(void);
