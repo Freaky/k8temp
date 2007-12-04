@@ -39,7 +39,10 @@ NetBSD users can try:
 
   cc -DWITH_LIBPCI -o k8temp k8temp.c k8temp_libpci.c
 
-But note this is completely untested.
+But note this has only been build tested (on FreeBSD and NetBSD/Sparc...)
+
+DragonFlyBSD should Just Work(tm), since it has an identical /dev/pci API
+to FreeBSD.
 
 Let me know if you get it working on systems other than FreeBSD 6/amd64.
 
@@ -77,7 +80,6 @@ Thermtrip=0x0f520220 (CurTmp=0x52 (33c) TjOffset=0x0f DiodeOffset=0x02 (9c))
 CPU 1 Core 1 Sensor 0: 33c
 
 Yes, some AMD64's allegedly have two sensors per core.
-
 
 
 References
