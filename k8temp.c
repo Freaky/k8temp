@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#define K8TEMP_VERSION "0.3.0pre6"
+#define K8TEMP_VERSION "0.3.0"
 
 /*
  * k8temp -- AMD K8 (AMD64, Opteron) on-die thermal sensor reader for FreeBSD.
@@ -51,7 +51,7 @@ usage(int exit_code)
 	        "usage: k8temp [-nd] [cpu[:core[:sensor]] ...] | [-v | -h]",
 	        "  -d    Dump debugging info",
 	        "  -h    Display this help text",
-	        "  -n    Only display number or UNKNOWN",
+	        "  -n    Only display values",
 	        "  -v    Display version information");
 	exit(exit_code);
 }
@@ -234,10 +234,6 @@ main(int argc, char *argv[])
 					else
 						printf("CPU %d Core %d Sensor %d: %dc\n", cpu, core, sensor, temp);
 					exit_code = EX_OK;
-				}
-				else if (value_only)
-				{
-					printf("UNKNOWN\n");
 				}
 			}
 		}
