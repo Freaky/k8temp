@@ -214,7 +214,6 @@ main(int argc, char *argv[])
 	check_cpuid();
 	k8_pci_init();
 
-	cpu = 0;
 	cpucount = k8_pci_vendor_device_list(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_K8_MISC_CTRL,
 	                                     devs, MAX_CPU);
 	for (cpu=0; cpu <= cpucount; cpu++)
