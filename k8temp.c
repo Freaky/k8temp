@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#define K8TEMP_VERSION "0.3.0"
+#define K8TEMP_VERSION "0.4.0pre"
 
 /*
  * k8temp -- AMD K8 (AMD64, Opteron) on-die thermal sensor reader for FreeBSD.
@@ -81,7 +81,7 @@ check_cpuid(void)
 	extmodel = (cpuid >> 16) & 0xf;
 	extfamily = (cpuid >> 20) & 0xff;
 
-	k10 = (extmodel == 1 && family == 0xf);
+	k10 = (extfamily == 1 && family == 0xf);
 
 	if (debug)
 		fprintf(stderr, "CPUID: Vendor: %.12s, 0x%x: Model=%x%x Family=%x+%x "
@@ -117,6 +117,30 @@ check_cpuid(void)
 	/* Linux only checks these 3 */
 	if (cpuid == 0xf40 || cpuid == 0xf50 || cpuid == 0xf51)
 		errx(EX_UNAVAILABLE, "This CPU stepping does not support thermal sensors.");
+}
+
+static int
+get_temp_k10(k8_pcidev dev, int core, int sensor)
+{
+	uint32_t temp, therm;
+
+	(void)core;
+	(void)sensor;
+
+	if (!k8_pci_read_word(dev, K10_THERM_REG, &temp))
+		return(TEMP_ERR);
+
+	if (debug)
+		fprintf(stderr, "Temp=%x\n", temp);
+
+
+	if (!k8_pci_read_word(dev, K10_THERMTRIP_REG, &therm))
+		return(TEMP_ERR);
+
+	if (debug)
+		fprintf(stderr, "ThermTrip=%x\n", therm);
+
+	return(K10_CURTMP(temp) / 8);
 }
 
 static int
@@ -168,7 +192,7 @@ int
 main(int argc, char *argv[])
 {
 	k8_pcidev devs[MAX_CPU];
-	unsigned int cpucount,cpu,core,sensor;
+	int cpucount,cpu,core,sensor;
 	int temp;
 	int exit_code = EX_UNAVAILABLE;
 	int opt;
@@ -225,7 +249,9 @@ main(int argc, char *argv[])
 	check_cpuid();
 	k8_pci_init();
 
-	cpucount = k8_pci_vendor_device_list(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_K8_MISC_CTRL,
+	int devid = k10 ? PCI_DEVICE_ID_AMD_K10_MISC_CTRL : PCI_DEVICE_ID_AMD_K8_MISC_CTRL;
+
+	cpucount = k8_pci_vendor_device_list(PCI_VENDOR_ID_AMD, devid,
 	                                     devs, MAX_CPU);
 	for (cpu=0; cpu <= cpucount; cpu++)
 	{
@@ -236,7 +262,11 @@ main(int argc, char *argv[])
 				if (selected > 0 && !selections[cpu][core][sensor])
 					continue;
 
-				temp = get_temp(devs[cpu], core, sensor);
+				if (k10)
+					temp = get_temp_k10(devs[cpu], core, sensor);
+				else
+					temp = get_temp(devs[cpu], core, sensor);
+
 				if (temp > TEMP_MIN)
 				{
 					if (value_only)
