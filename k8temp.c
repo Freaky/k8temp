@@ -42,6 +42,7 @@
 #include "k8temp.h"
 
 static int debug = 0;
+static int k10   = 0;
 
 static void
 usage(int exit_code)
@@ -68,14 +69,24 @@ check_cpuid(void)
 {
 	unsigned int vendor[3];
 	unsigned int maxeid,cpuid,pwrmgt,unused;
-	int i;
+	int i, model, extmodel, family, extfamily, stepping;
 
 	asm("cpuid": "=a" (unused), "=b" (vendor[0]), "=c" (vendor[2]), "=d" (vendor[1]) : "a" (0));
 	asm("cpuid": "=a" (cpuid), "=b" (unused), "=c" (unused), "=d" (unused) : "a" (1));
 
+	model = (cpuid >> 4) & 0xf;
+	family = (cpuid >> 8) & 0xf;
+	stepping = cpuid & 0xf;
+
+	extmodel = (cpuid >> 16) & 0xf;
+	extfamily = (cpuid >> 20) & 0xff;
+
+	k10 = (extmodel == 1 && family == 0xf);
+
 	if (debug)
-		fprintf(stderr, "CPUID: Vendor: %.12s, Id=0x%x Model=%d Family=%d Stepping=%d\n",
-		        (char *)vendor, cpuid, (cpuid >> 4) & 0xf, (cpuid >> 8) & 0xf, cpuid & 0xf);
+		fprintf(stderr, "CPUID: Vendor: %.12s, 0x%x: Model=%x%x Family=%x+%x "
+		                "Stepping=%d\n",
+		        (char *)vendor, cpuid, extmodel, model, family, extfamily, stepping);
 
 	if (0 != memcmp((char *)&vendor, "AuthenticAMD", (size_t) 12))
 		errx(EX_UNAVAILABLE, "Only AMD CPU's are supported by k8temp");
