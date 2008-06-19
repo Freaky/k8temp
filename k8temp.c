@@ -127,6 +127,9 @@ get_temp_k10(k8_pcidev dev, int core, int sensor)
 	(void)core;
 	(void)sensor;
 
+	if (core > 0 || sensor > 0)
+		return(TEMP_ERR);
+
 	if (!k8_pci_read_word(dev, K10_THERM_REG, &temp))
 		return(TEMP_ERR);
 
