@@ -122,6 +122,7 @@ check_cpuid(void)
 static int
 get_temp_k10(k8_pcidev dev, int core, int sensor)
 {
+	static int thermtp = 0;
 	uint32_t temp, therm;
 
 	(void)core;
@@ -142,6 +143,12 @@ get_temp_k10(k8_pcidev dev, int core, int sensor)
 
 	if (debug)
 		fprintf(stderr, "ThermTrip=%x\n", therm);
+
+	if (K10_THERMTRIP(therm) && !thermtp)
+	{
+		fprintf(stderr, "Thermal trip bit set, system overheating?\n");
+		thermtp = 1;
+	}
 
 	return(K10_CURTMP(temp) / 8);
 }

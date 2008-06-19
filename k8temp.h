@@ -14,6 +14,7 @@
 #define K10_THERM_REG      0xa4
 #define K10_THERMTRIP_REG  0xe4
 #define K10_CURTMP(val)    (((val) >> 21) & 0xfff)
+#define K10_THERMTRIP(val) ((val >> 1) & 1)
 
 /*
  * See section 4.6.23, Thermtrip Status Register:
