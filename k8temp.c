@@ -59,7 +59,7 @@ usage(int exit_code)
 static void
 version(void)
 {
-	printf("k8temp v%s\nCopyright 2007 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
+	printf("k8temp v%s\nCopyright 2007-2008 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
 	exit(EX_OK);
 }
 
