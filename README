@@ -6,6 +6,10 @@ Synopsis
 k8temp displays readings from the on-die thermal diodes found in most
 AMD K8 processors, including Athlon 64's and Opterons.
 
+As of 0.4.0, k8temp can also produce values from AMD K10's, including
+Barcelona and Phenom.  This support is experimental, and is unlikely to
+report realistic values at this time.
+
 
 =======
 WARNING
@@ -44,7 +48,7 @@ But note this has only been build tested (on FreeBSD and NetBSD/Sparc...)
 DragonFlyBSD should Just Work(tm), since it has an identical /dev/pci API
 to FreeBSD.
 
-Let me know if you get it working on systems other than FreeBSD 6/amd64.
+Let me know if you get it working on systems other than FreeBSD 6 or 7.
 
 
 
@@ -88,7 +92,6 @@ BIOS and Kernel Developer's Guide for AMD NPT Family 0fh Processors.
  Section 4.6.23, Thermtrip Status Register.
   http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/32559.pdf
 
-(Upcoming, hopefully)
 BIOS and Kernel Developer's Guide (BKDG) For AMD Family 10h Processors
  Section 3.6.F3xA4, Reported Temperature Control Register.
   http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/31116.pdf
