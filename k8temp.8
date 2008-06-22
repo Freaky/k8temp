@@ -1,4 +1,4 @@
-.\" Copyright (c) 2007 Thomas Hurst <tom@hur.st>
+.\" Copyright (c) 2007-2008 Thomas Hurst <tom@hur.st>
 .\"
 .\" Permission is hereby granted, free of charge, to any person obtaining a copy
 .\" of this software and associated documentation files (the "Software"), to deal
@@ -72,6 +72,8 @@ Core numbers on single core systems may be incorrect (e.g. core 1 but no core 0)
 Running multiple copies of
 .Nm
 at once could result in readings being taken from incorrect cores.
+.Pp
+Readings from K10's are experimental.  Limited testing suggests they're 10-20 degrees too low.
 .Sh HISTORY
 .Bl -tag -width indent
 .It 0.1.0, 2007-10-21
@@ -83,11 +85,16 @@ Add support for diode offset correction and debugging options.  Add CPUID check.
 .It 0.3.0, 2007-12-04
 Add tentative support for OpenBSD and NetBSD.  Remove (meaningless) diode offset correction.
 Introduce value-only output mode and sensor selector arguments.
+.It 0.4.0, 2008-06-22
+Add preliminary K10 (Barcelona/Phenom) support.
 .El
 .Sh SEE ALSO
 BIOS and Kernel Developer's Guide for AMD NPT Family 0fh Processors.
 Section 4.6.23, Thermtrip Status Register.
 .Pp
 AMD CPUID Specification, CPUID Fn8000_0007, Advanced Power Management Information.
+.Pp
+BIOS and Kernel Developer's Guide For AMD Family 10h Processors.
+Section 3.6.F3xA4, Reported Temperature Control Register.
 .Sh AUTHOR
 .An "Thomas Hurst" Aq tom@hur.st
