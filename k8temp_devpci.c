@@ -18,6 +18,7 @@
 #include "k8temp_pci.h"
 
 static int fd;
+static int quiet = 0;
 
 void
 k8_pci_init()
@@ -72,6 +73,7 @@ k8_pci_vendor_device_list(uint32_t vendor_id, uint32_t device_id, k8_pcidev devs
 	k8_pcidev sel;
 	bzero(&sel, sizeof(k8_pcidev));
 	sel.pc_bus = 0;
+	quiet = 1;
 	for (dev=0; dev < 32; dev++)
 	{
 		sel.pc_dev = dev;
@@ -89,6 +91,7 @@ k8_pci_vendor_device_list(uint32_t vendor_id, uint32_t device_id, k8_pcidev devs
 			}
 		}
 	}
+	quiet = 0;
 #endif
 	return(matches);
 }
@@ -105,7 +108,7 @@ k8_pci_read(k8_pcidev dev, int offset, uint32_t *data, int width)
 
 	if (ioctl(fd, PCIOCREAD, &ctrl) == -1)
 	{
-		warn("Register read %x, %d bytes failed", offset, width);
+		if (!quiet) warn("Register read %x, %d bytes failed", offset, width);
 		return(0);
 	}
 

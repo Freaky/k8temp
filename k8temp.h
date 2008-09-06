@@ -4,6 +4,7 @@
 #define PCI_VENDOR_ID_AMD               0x1022
 #define PCI_DEVICE_ID_AMD_K8_MISC_CTRL  0x1103
 #define PCI_DEVICE_ID_AMD_K10_MISC_CTRL 0x1203
+#define PCI_DEVICE_ID_AMD_K8_11H_MISC_CTRL 0x1303
 
 /*
  * BIOS and Kernel Developer's Guide (BKDG) For AMD Family 10h Processors
