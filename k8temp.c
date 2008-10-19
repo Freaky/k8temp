@@ -125,9 +125,6 @@ get_temp_k10(k8_pcidev dev, int core, int sensor)
 	static int thermtp = 0;
 	uint32_t temp, therm;
 
-	(void)core;
-	(void)sensor;
-
 	if (core > 0 || sensor > 0)
 		return(TEMP_ERR);
 
@@ -263,6 +260,11 @@ main(int argc, char *argv[])
 
 	cpucount = k8_pci_vendor_device_list(PCI_VENDOR_ID_AMD, devid,
 	                                     devs, MAX_CPU);
+
+	if (0 == cpucount)
+	{
+		warnx("No AMD K8 or K10 Miscellaneous Controller detected.");
+	}
 	for (cpu=0; cpu <= cpucount; cpu++)
 	{
 		for (core = 0; core < MAX_CORE; core++)
