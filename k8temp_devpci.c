@@ -21,14 +21,14 @@ static int fd;
 static int quiet = 0;
 
 void
-k8_pci_init()
+k8_pci_init(void)
 {
 	if ((fd = open(_PATH_DEVPCI, O_RDWR, 0))  < 0)
 		err(EX_OSFILE, "open(\"%s\")", _PATH_DEVPCI);
 }
 
 void
-k8_pci_close()
+k8_pci_close(void)
 {
 	if (fd) close(fd);
 }
