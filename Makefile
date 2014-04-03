@@ -6,7 +6,7 @@ UNAME?=  /usr/bin/uname
 OPSYS!= ${UNAME} -s
 .endif
 
-WARNS= 6
+WARNS?= 6
 CSTD=  gnu99
 
 BINDIR=${PREFIX}/sbin
