@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#define K8TEMP_VERSION "0.4.0"
+#define K8TEMP_VERSION "0.4.1"
 
 /*
  * k8temp -- AMD K8 (AMD64, Opteron) on-die thermal sensor reader for FreeBSD.
@@ -60,7 +60,7 @@ usage(int exit_code)
 static void
 version(void)
 {
-	printf("k8temp v%s\nCopyright 2007-2008 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
+	printf("k8temp v%s\nCopyright 2007-2014 Thomas Hurst <tom@hur.st>\n", K8TEMP_VERSION);
 	exit(EX_OK);
 }
 
