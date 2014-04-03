@@ -1,5 +1,6 @@
 
 #ifndef _K8TEMP_H_
+#define _K8TEMP_H_
 
 #define PCI_VENDOR_ID_AMD               0x1022
 #define PCI_DEVICE_ID_AMD_K8_MISC_CTRL  0x1103
@@ -44,7 +45,7 @@ static void usage(int exit_code);
 static void version(void);
 int main(int argc, char *argv[]);
 
-const char *advPwrMgtFlags[] = {
+static const char *advPwrMgtFlags[] = {
 	"Temperature sensor",
 	"Frequency ID control",
 	"Voltage ID control",

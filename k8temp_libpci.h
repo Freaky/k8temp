@@ -1,6 +1,6 @@
 
 #ifndef _K8TEMP_LIBPCI_H_
-#define _K8_TEMP_LIBPCI_H
+#define _K8TEMP_LIBPCI_H_
 
 #include <err.h>
 #include <fcntl.h>
