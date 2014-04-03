@@ -261,7 +261,7 @@ main(int argc, char *argv[])
 	cpucount = k8_pci_vendor_device_list(PCI_VENDOR_ID_AMD, devid,
 	                                     devs, MAX_CPU);
 
-	if (0 == cpucount)
+	if (-1 == cpucount)
 	{
 		warnx("No AMD K8 or K10 Miscellaneous Controller detected.");
 	}
